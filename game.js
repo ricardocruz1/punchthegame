@@ -2737,7 +2737,9 @@ function drawGameOverScreen() {
 
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 18px Arial';
-  ctx.fillText('TAP TO RETRY', 0, 7);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('TAP TO RETRY', 0, 0);
   ctx.restore();
 }
 
