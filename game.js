@@ -220,6 +220,21 @@ const input = {
 document.addEventListener('keydown', (e) => {
   // --- NAME INPUT SCREEN ---
   if (gameState === 'name') {
+    // If hidden input exists, let it handle all text input to avoid double-registration
+    if (mobileNameInput && document.activeElement === mobileNameInput) {
+      // Only handle Enter here (Enter is also handled on the mobileNameInput keydown)
+      if (e.code === 'Enter' || e.code === 'NumpadEnter') {
+        e.preventDefault();
+        if (playerName.length >= 1) {
+          localStorage.setItem('punchPlayerName', playerName);
+          gameState = 'menu';
+          mobileNameInput.blur();
+          fetchLeaderboard();
+        }
+      }
+      return;
+    }
+    // Fallback: direct keyboard handling when hidden input is not focused
     if (e.code === 'Enter' || e.code === 'NumpadEnter') {
       if (playerName.length >= 1) {
         localStorage.setItem('punchPlayerName', playerName);
@@ -237,7 +252,6 @@ document.addEventListener('keydown', (e) => {
     }
     // Allow typed characters (letters, numbers, some symbols)
     if (e.key.length === 1 && playerName.length < 15) {
-      // Filter to printable ASCII
       const c = e.key;
       if (/^[a-zA-Z0-9 _\-.]$/.test(c)) {
         playerName += c;
