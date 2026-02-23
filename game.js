@@ -692,16 +692,19 @@ function spawnFloatingText(x, y, text, color) {
 function update(dt) {
   if (gameState !== 'playing') return;
 
+  // Frame-rate normalization: f = 1.0 at 60fps, 0.5 at 120fps, etc.
+  const f = dt * 60;
+
   frameCount++;
-  distance += gameSpeed * 0.0175;
-  score += Math.floor(gameSpeed * player.multiplier);
+  distance += gameSpeed * 0.0175 * f;
+  score += Math.floor(gameSpeed * player.multiplier * f);
   gameSpeed = Math.min(MAX_GAME_SPEED, INITIAL_GAME_SPEED + distance * SPEED_INCREMENT);
 
   // Player lane movement
   const targetX = getLaneX(player.targetLane);
   const dx = targetX - player.x;
   if (Math.abs(dx) > 1) {
-    const step = Math.sign(dx) * Math.min(LANE_SWITCH_SPEED, Math.abs(dx));
+    const step = Math.sign(dx) * Math.min(LANE_SWITCH_SPEED * f, Math.abs(dx));
     player.x += step;
   } else {
     player.x = targetX;
@@ -710,8 +713,8 @@ function update(dt) {
 
   // Player jump physics
   if (player.isJumping) {
-    player.vy += GRAVITY;
-    player.y += player.vy;
+    player.vy += GRAVITY * f;
+    player.y += player.vy * f;
     if (player.y >= LANE_Y_BASE) {
       player.y = LANE_Y_BASE;
       player.vy = 0;
@@ -752,29 +755,29 @@ function update(dt) {
 
   // Animation
   player.animTimer += dt;
-  player.runCycle += gameSpeed * 0.15;
+  player.runCycle += gameSpeed * 0.15 * f;
 
   // Screen shake decay
-  shakeAmount *= 0.9;
-  flashAlpha *= 0.9;
+  shakeAmount *= Math.pow(0.9, f);
+  flashAlpha *= Math.pow(0.9, f);
 
   // --- SPAWN MANAGEMENT ---
   // Early game has much wider gaps; tightens over time
   const spawnGap = Math.max(170, 290 - distance * 1.14);
-  spawnTimer += gameSpeed;
+  spawnTimer += gameSpeed * f;
   if (spawnTimer > spawnGap + Math.random() * 80) {
     spawnTimer = 0;
     spawnObstacle();
   }
 
-  plushieSpawnTimer += gameSpeed;
+  plushieSpawnTimer += gameSpeed * f;
   if (plushieSpawnTimer > 200 + Math.random() * 100) {
     plushieSpawnTimer = 0;
     spawnPlushie();
   }
 
   // --- CHASER MONKEY STATE MACHINE ---
-  chaser.animFrame += 0.2;
+  chaser.animFrame += 0.2 * f;
   chaser.stateTimer += dt * 1000;
 
   switch (chaser.state) {
@@ -788,7 +791,7 @@ function update(dt) {
         chaser.y = LANE_Y_BASE + 50;
       } else {
         // Gradually fall back as the run begins
-        chaser.y += 1.5;
+        chaser.y += 1.5 * f;
         if (chaser.y > H + 100) {
           chaser.state = 'idle';
           chaser.stateTimer = 0;
@@ -804,7 +807,7 @@ function update(dt) {
     case 'chasing':
       // After first hit: chasers rapidly close in
       if (chaser.y > LANE_Y_BASE + 40) {
-        chaser.y -= 4; // rush in fast
+        chaser.y -= 4 * f; // rush in fast
       } else {
         chaser.y = LANE_Y_BASE + 40; // hold close behind
       }
@@ -812,7 +815,7 @@ function update(dt) {
 
     case 'retreating':
       // Player survived long enough after hit - chasers fall back
-      chaser.y += 2;
+      chaser.y += 2 * f;
       if (chaser.y > H + 100) {
         chaser.state = 'idle';
         chaser.stateTimer = 0;
@@ -822,7 +825,7 @@ function update(dt) {
     case 'catching':
       // Final game over - chasers rush in and surround Punch
       if (chaser.y > player.y + 20) {
-        chaser.y -= 6; // rush in to catch
+        chaser.y -= 6 * f; // rush in to catch
       } else {
         chaser.y = player.y + 20;
         chaser.catchAnimPhase += dt * 8;
@@ -833,7 +836,7 @@ function update(dt) {
   // Follow player's lane loosely
   if (chaser.state !== 'idle') {
     const chaserTargetX = player.x;
-    chaser.x += (chaserTargetX - chaser.x) * 0.05;
+    chaser.x += (chaserTargetX - chaser.x) * (1 - Math.pow(0.95, f));
   }
 
   // --- PLAYER STUNNED / RECOVERY LOGIC ---
@@ -861,7 +864,7 @@ function update(dt) {
   // --- UPDATE OBSTACLES ---
   for (let i = obstacles.length - 1; i >= 0; i--) {
     const obs = obstacles[i];
-    obs.y += gameSpeed;
+    obs.y += gameSpeed * f;
 
     // Collision detection - generous hitbox padding
     if (!obs.passed && player.alive && distance > 3.5) {
@@ -908,9 +911,9 @@ function update(dt) {
       p.x = p.obstacleRef.x;
       p.y = p.obstacleRef.y - p.obstacleRef.height - 20;
     } else {
-      p.y += gameSpeed;
+      p.y += gameSpeed * f;
     }
-    p.bobPhase += 0.05;
+    p.bobPhase += 0.05 * f;
 
     // Magnet pull
     if (player.magnetActive && !p.collected) {
@@ -918,8 +921,8 @@ function update(dt) {
       const pullDy = player.y - player.height / 2 - p.y;
       const pullDist = Math.sqrt(pullDx * pullDx + pullDy * pullDy);
       if (pullDist < 150) {
-        p.x += pullDx * 0.1;
-        p.y += pullDy * 0.1;
+        p.x += pullDx * 0.1 * f;
+        p.y += pullDy * 0.1 * f;
       }
     }
 
@@ -958,10 +961,10 @@ function update(dt) {
   // --- UPDATE PARTICLES ---
   for (let i = particles.length - 1; i >= 0; i--) {
     const p = particles[i];
-    p.x += p.vx;
-    p.y += p.vy;
-    p.vy += 0.1;
-    p.life -= p.decay;
+    p.x += p.vx * f;
+    p.y += p.vy * f;
+    p.vy += 0.1 * f;
+    p.life -= p.decay * f;
     if (p.life <= 0) {
       particles.splice(i, 1);
     }
@@ -970,8 +973,8 @@ function update(dt) {
   // --- UPDATE FLOATING TEXTS ---
   for (let i = floatingTexts.length - 1; i >= 0; i--) {
     const ft = floatingTexts[i];
-    ft.y += ft.vy;
-    ft.life -= 0.02;
+    ft.y += ft.vy * f;
+    ft.life -= 0.02 * f;
     if (ft.life <= 0) {
       floatingTexts.splice(i, 1);
     }
@@ -980,7 +983,7 @@ function update(dt) {
   // --- UPDATE BACKGROUND ---
   // Trees/bushes are roadside scenery - scroll at same speed as the ground
   for (let i = bgElements.length - 1; i >= 0; i--) {
-    bgElements[i].y += gameSpeed;
+    bgElements[i].y += gameSpeed * f;
     if (bgElements[i].y > H + 100) {
       bgElements[i] = createBgElement();
     }
@@ -988,7 +991,7 @@ function update(dt) {
 
   // Ground stripes
   for (let i = 0; i < groundStripes.length; i++) {
-    groundStripes[i].z += gameSpeed;
+    groundStripes[i].z += gameSpeed * f;
     if (groundStripes[i].z > 1000) {
       groundStripes[i].z -= 1000;
     }
@@ -2451,7 +2454,7 @@ function drawLeaderboard(startY, compact) {
   ctx.fillText('#', lbX - 120, y);
   ctx.fillText('PLAYER', lbX - 100, y);
   ctx.textAlign = 'center';
-  ctx.fillText('DATE', lbX + 50, y);
+  ctx.fillText('DATE', lbX + 30, y);
   ctx.textAlign = 'right';
   ctx.fillText('SCORE', lbX + 130, y);
   y += rowH;
@@ -2491,7 +2494,7 @@ function drawLeaderboard(startY, compact) {
     ctx.font = (compact ? 10 : 11) + 'px Arial';
     if (entry.created_at) {
       var d = new Date(entry.created_at);
-      ctx.fillText(shortMonths[d.getMonth()] + ' ' + d.getDate(), lbX + 50, y);
+      ctx.fillText(shortMonths[d.getMonth()] + ' ' + d.getDate(), lbX + 30, y);
     }
 
     // Score
