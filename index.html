@@ -153,12 +153,17 @@
 
   /* ---------- PANEL LEADERBOARD ---------- */
   .panel-leaderboard {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2px 12px;
+    display: flex;
+    gap: 12px;
+  }
+  .panel-leaderboard .lb-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
   }
   .panel-leaderboard .lb-loading {
-    grid-column: 1 / -1;
+    width: 100%;
     text-align: center;
     color: #666;
     font-size: 13px;
@@ -950,13 +955,24 @@ window.addEventListener('highScoreUpdated', updateDonateGate);
       el.innerHTML = '<div class="lb-loading">No scores yet. Be the first!</div>';
       return;
     }
-    el.innerHTML = data.map(function(row, i) {
+    var half = Math.ceil(data.length / 2);
+    var left = data.slice(0, half);
+    var right = data.slice(half);
+
+    function entryHTML(row, i) {
       return '<div class="lb-entry">'
         + '<span class="lb-rank ' + rankClass(i) + '">' + (i + 1) + '.</span>'
         + '<span class="lb-name">' + row.name.replace(/</g, '&lt;') + '</span>'
         + '<span class="lb-score">' + row.score.toLocaleString() + '</span>'
         + '</div>';
-    }).join('');
+    }
+
+    el.innerHTML = '<div class="lb-col">' + left.map(function(row, i) {
+      return entryHTML(row, i);
+    }).join('') + '</div>'
+    + '<div class="lb-col">' + right.map(function(row, i) {
+      return entryHTML(row, i + half);
+    }).join('') + '</div>';
   }
 
   async function fetchPanelLeaderboard() {
