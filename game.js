@@ -1043,6 +1043,8 @@ function gameOver() {
   // Submit score to leaderboard
   if (playerName && score > 0) {
     submitScore(playerName, score);
+    // Signal panel leaderboard to refresh
+    setTimeout(function() { window.dispatchEvent(new Event('leaderboardUpdated')); }, 1500);
   }
 
   // Death particles
@@ -2604,13 +2606,7 @@ function drawMenuScreen() {
   ctx.fillText('TAP TO START', 0, 7);
   ctx.restore();
 
-  // High score
-  if (highScore > 0) {
-    ctx.fillStyle = '#FFD700';
-    ctx.font = '14px Arial';
-    ctx.textAlign = 'center';
-    ctx.fillText('HIGH SCORE: ' + highScore.toLocaleString(), W / 2, H * 0.92);
-  }
+
 }
 
 function drawGameOverScreen() {
@@ -2705,19 +2701,6 @@ function drawGameOverScreen() {
   ctx.fillStyle = '#aaa';
   ctx.fillText('PLUSHIES', W / 2 + 120, statsY + 16);
 
-  // New high score?
-  if (score >= highScore && score > 0) {
-    ctx.fillStyle = '#FFD700';
-    ctx.font = 'bold 16px Arial';
-    const hsFlash = Math.sin(Date.now() * 0.005) > 0;
-    if (hsFlash) {
-      ctx.fillText('NEW HIGH SCORE!', W / 2, H * 0.32);
-    }
-  } else {
-    ctx.fillStyle = '#888';
-    ctx.font = '12px Arial';
-    ctx.fillText('HIGH SCORE: ' + highScore.toLocaleString(), W / 2, H * 0.32);
-  }
 
   // Leaderboard
   drawLeaderboard(H * 0.37, true);

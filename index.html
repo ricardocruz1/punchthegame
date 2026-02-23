@@ -151,26 +151,54 @@
     color: #a1a1aa;
   }
 
-  .tips-list {
-    list-style: none;
-    padding: 0;
+  /* ---------- PANEL LEADERBOARD ---------- */
+  .panel-leaderboard {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px 12px;
   }
-
-  .tips-list li {
-    font-size: 14px;
-    color: #a1a1aa;
-    line-height: 1.55;
-    padding-left: 18px;
-    position: relative;
-    margin-bottom: 5px;
+  .panel-leaderboard .lb-loading {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #666;
+    font-size: 13px;
+    padding: 12px 0;
   }
-
-  .tips-list li::before {
-    content: ">";
-    position: absolute;
-    left: 2px;
-    color: #fbbf24;
+  .panel-leaderboard .lb-entry {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .panel-leaderboard .lb-entry:nth-child(odd) {
+    background: rgba(255,255,255,0.03);
+  }
+  .panel-leaderboard .lb-rank {
     font-weight: 700;
+    min-width: 22px;
+    text-align: right;
+    color: #888;
+  }
+  .panel-leaderboard .lb-rank.gold { color: #FFD700; }
+  .panel-leaderboard .lb-rank.silver { color: #C0C0C0; }
+  .panel-leaderboard .lb-rank.bronze { color: #CD7F32; }
+  .panel-leaderboard .lb-name {
+    flex: 1;
+    color: #d4d4d8;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .panel-leaderboard .lb-score {
+    font-weight: 600;
+    color: #fbbf24;
+    font-variant-numeric: tabular-nums;
+  }
+  .leaderboard-card h3 {
+    margin-bottom: 8px;
   }
 
   /* ---------- GAME COLUMN ---------- */
@@ -391,7 +419,7 @@
     .panel-card { padding: 18px; }
     .panel-card h2 { font-size: 18px; }
     .panel-card p { font-size: 14px; line-height: 1.6; }
-    .tips-list li { font-size: 13px; }
+    .panel-leaderboard .lb-entry { font-size: 12px; }
     .control-label { font-size: 13px; }
     .page-wrapper { gap: 16px; padding: 12px; }
     .panel { height: calc(100vh - 24px); }
@@ -604,16 +632,11 @@
       </div>
     </div>
 
-    <div class="panel-card">
-      <h3>Tips for Survival</h3>
-      <ul class="tips-list">
-        <li>Switch lanes early &mdash; don't panic-swerve into a boulder</li>
-        <li>Jump timing is forgiving, just don't wait until the last pixel</li>
-        <li>Grab the orange plushies for bonus points (Punch loves those)</li>
-        <li>After one hit you get a second chance &mdash; but the angry monkeys start chasing</li>
-        <li>Get hit twice and... well, they catch you. It's not pretty.</li>
-        <li>Look out for magnets and multiplier powerups!</li>
-      </ul>
+    <div class="panel-card leaderboard-card">
+      <h3>Global Leaderboard</h3>
+      <div id="panelLeaderboard" class="panel-leaderboard">
+        <div class="lb-loading">Loading...</div>
+      </div>
     </div>
 
   </div>
@@ -757,14 +780,11 @@
     </div>
   </div>
 
-  <div class="panel-card">
-    <h3>Tips</h3>
-    <ul class="tips-list">
-      <li>Switch lanes early &mdash; don't panic-swerve into a boulder</li>
-      <li>Grab plushies for bonus points</li>
-      <li>One hit = second chance, but angry monkeys start chasing</li>
-      <li>Two hits = game over. Run fast.</li>
-    </ul>
+  <div class="panel-card leaderboard-card">
+    <h3>Global Leaderboard</h3>
+    <div id="mobileLeaderboard" class="panel-leaderboard">
+      <div class="lb-loading">Loading...</div>
+    </div>
   </div>
 </div>
 
@@ -908,6 +928,66 @@ updateDonateGate();
 window.addEventListener('highScoreUpdated', updateDonateGate);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+// Panel leaderboard (top 20, shared across desktop panel + mobile overlay)
+(function() {
+  const SB_URL = 'https://oruxxgyqjxcziaqxzrdg.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ydXh4Z3lxanhjemlhcXh6cmRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjM3NjIsImV4cCI6MjA4NzQzOTc2Mn0.cGWDNCe5BFJtEjzy1gz4lboUtijurDGm3JiOZBfcCAc';
+  let sb;
+  try { sb = window.supabase.createClient(SB_URL, SB_KEY); } catch(e) { return; }
+
+  function rankClass(i) {
+    if (i === 0) return 'gold';
+    if (i === 1) return 'silver';
+    if (i === 2) return 'bronze';
+    return '';
+  }
+
+  function renderLeaderboard(containerId, data) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    if (!data || data.length === 0) {
+      el.innerHTML = '<div class="lb-loading">No scores yet. Be the first!</div>';
+      return;
+    }
+    el.innerHTML = data.map(function(row, i) {
+      return '<div class="lb-entry">'
+        + '<span class="lb-rank ' + rankClass(i) + '">' + (i + 1) + '.</span>'
+        + '<span class="lb-name">' + row.name.replace(/</g, '&lt;') + '</span>'
+        + '<span class="lb-score">' + row.score.toLocaleString() + '</span>'
+        + '</div>';
+    }).join('');
+  }
+
+  async function fetchPanelLeaderboard() {
+    try {
+      const { data, error } = await sb
+        .from('leaderboard')
+        .select('name, score')
+        .order('score', { ascending: false })
+        .limit(20);
+      if (!error && data) {
+        renderLeaderboard('panelLeaderboard', data);
+        renderLeaderboard('mobileLeaderboard', data);
+      }
+    } catch(e) {
+      console.warn('Panel leaderboard fetch failed:', e);
+    }
+  }
+
+  // Fetch on load
+  fetchPanelLeaderboard();
+
+  // Refresh after each game over (game.js dispatches these)
+  window.addEventListener('highScoreUpdated', function() {
+    setTimeout(fetchPanelLeaderboard, 1500);
+  });
+  window.addEventListener('leaderboardUpdated', fetchPanelLeaderboard);
+
+  // Also refresh every 60s
+  setInterval(fetchPanelLeaderboard, 60000);
+})();
+</script>
 <script src="game.js"></script>
 </body>
 </html>
