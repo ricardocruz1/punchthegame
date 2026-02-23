@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /generate-og-image.html
+Disallow: /generate-favicons.html
+
+Sitemap: https://punchthegame.com/sitemap.xml
