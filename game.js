@@ -204,6 +204,15 @@ const chaser = {
 };
 
 // ============================================================
+// MOBILE RESTART BUTTON VISIBILITY
+// ============================================================
+function updateRestartButton() {
+  const btn = document.getElementById('mobileRestart');
+  if (!btn) return;
+  btn.style.display = (gameState === 'playing' || gameState === 'gameover') ? 'flex' : 'none';
+}
+
+// ============================================================
 // INPUT HANDLING
 // ============================================================
 const input = {
@@ -263,11 +272,11 @@ document.addEventListener('keydown', (e) => {
   }
 
   if (gameState === 'menu') {
-    if (e.code === 'Space' || e.code === 'Enter') startGame();
+    if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyR') startGame();
     return;
   }
   if (gameState === 'gameover') {
-    if (e.code === 'Space' || e.code === 'Enter') startGame();
+    if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyR') startGame();
     return;
   }
   switch (e.code) {
@@ -291,6 +300,10 @@ document.addEventListener('keydown', (e) => {
     case 'KeyS':
       e.preventDefault();
       roll();
+      break;
+    case 'KeyR':
+      e.preventDefault();
+      startGame();
       break;
   }
 });
@@ -460,6 +473,7 @@ function roll() {
 // ============================================================
 function startGame() {
   gameState = 'playing';
+  updateRestartButton();
   score = 0;
   plushiesCollected = 0;
   gameSpeed = INITIAL_GAME_SPEED;
@@ -1038,6 +1052,7 @@ function playerHit() {
 function gameOver() {
   player.alive = false;
   gameState = 'gameover';
+  updateRestartButton();
   shakeAmount = 15;
   flashAlpha = 0.5;
 
@@ -2628,6 +2643,11 @@ function drawMenuScreen() {
   ctx.fillText('TAP TO START', 0, 0);
   ctx.restore();
 
+  // "or press R" hint for desktop
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.font = '13px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('or press R to restart', W / 2, H * 0.83 + 36);
 
 }
 
@@ -2746,6 +2766,12 @@ function drawGameOverScreen() {
   ctx.textBaseline = 'middle';
   ctx.fillText('TAP TO RETRY', 0, 0);
   ctx.restore();
+
+  // "or press R" hint for desktop
+  ctx.fillStyle = 'rgba(255,255,255,0.45)';
+  ctx.font = '13px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('or press R to restart', W / 2, H * 0.88 + 36);
 }
 
 function roundRect(ctx, x, y, w, h, r) {

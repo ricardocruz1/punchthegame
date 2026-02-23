@@ -574,6 +574,12 @@
       line-height: 1;
     }
 
+    .mobile-fab.mobile-restart {
+      right: auto;
+      left: 10px;
+      font-size: 20px;
+    }
+
     .mobile-fab:active {
       transform: scale(0.9);
     }
@@ -737,6 +743,10 @@
           <span class="key-badge">Swipe</span>
           <span class="control-label">Touch controls on mobile</span>
         </div>
+        <div class="control-row">
+          <span class="key-badge">R</span>
+          <span class="control-label">Restart game</span>
+        </div>
       </div>
     </div>
 
@@ -837,6 +847,7 @@
 </div>
 
 <!-- ======== MOBILE FLOATING MENU ======== -->
+<button class="mobile-fab mobile-restart" id="mobileRestart" onclick="restartGame()" style="display:none;">&#x21BA;</button>
 <button class="mobile-fab" id="mobileFab" onclick="toggleFabMenu()">&#x2630;</button>
 <div class="mobile-fab-menu" id="mobileFabMenu">
   <button class="mobile-fab-menu-item" onclick="toggleFabMenu(); toggleOverlay('info-overlay')">How to Play</button>
@@ -884,6 +895,10 @@
       <div class="control-row">
         <span class="key-badge">Swipe Down</span>
         <span class="control-label">Roll under logs</span>
+      </div>
+      <div class="control-row">
+        <span class="key-badge">&#x21BA;</span>
+        <span class="control-label">Restart (top-left button)</span>
       </div>
     </div>
   </div>
@@ -962,6 +977,11 @@ function toggleOverlay(id) {
 // ---------- FLOATING MENU ----------
 function toggleFabMenu() {
   document.getElementById('mobileFabMenu').classList.toggle('active');
+}
+
+// ---------- RESTART BUTTON ----------
+function restartGame() {
+  if (typeof startGame === 'function') startGame();
 }
 
 // Close fab menu when tapping outside
