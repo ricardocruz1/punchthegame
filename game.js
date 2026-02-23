@@ -1,5 +1,5 @@
 // ============================================================
-// PUNCH, THE MONKEY - ROCK RUNNER
+// PUNCH, THE MONKEY
 // A Subway Surfers-style endless runner
 // ============================================================
 
@@ -222,7 +222,7 @@ const chaser = {
 function updateRestartButton() {
   const btn = document.getElementById('mobileRestart');
   if (!btn) return;
-  btn.style.display = (gameState === 'playing' || gameState === 'gameover') ? 'flex' : 'none';
+  btn.style.display = (gameState === 'playing' || gameState === 'gameover' || gameState === 'share') ? 'flex' : 'none';
 }
 
 // ============================================================
@@ -290,6 +290,13 @@ document.addEventListener('keydown', (e) => {
   }
   if (gameState === 'gameover') {
     if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyR') startGame();
+    if (e.code === 'KeyS') { gameState = 'share'; shareButtonFlash = 0; }
+    return;
+  }
+  if (gameState === 'share') {
+    if (e.code === 'KeyR' || e.code === 'Space' || e.code === 'Enter') startGame();
+    if (e.code === 'Escape') gameState = 'gameover';
+    if (e.code === 'KeyC' || e.code === 'KeyS') triggerShare();
     return;
   }
   switch (e.code) {
@@ -384,9 +391,54 @@ canvas.addEventListener('touchstart', (e) => {
     focusMobileInput();
     return;
   }
-  if (gameState === 'menu' || gameState === 'gameover') {
+  if (gameState === 'menu') {
     startGame();
     return;
+  }
+  if (gameState === 'gameover') {
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = W / rect.width;
+    const scaleY = H / rect.height;
+    const tapX = (touch.clientX - rect.left) * scaleX;
+    const tapY = (touch.clientY - rect.top) * scaleY;
+    const btnY = H * 0.88;
+    // Share button
+    if (tapY > btnY - 20 && tapY < btnY + 20 && tapX > W/2 - 120 && tapX < W/2 - 10) {
+      // On mobile, trigger native share directly
+      triggerShare();
+      return;
+    }
+    // Retry or anywhere else
+    startGame();
+    return;
+  }
+  if (gameState === 'share') {
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = W / rect.width;
+    const scaleY = H / rect.height;
+    const tapX = (touch.clientX - rect.left) * scaleX;
+    const tapY = (touch.clientY - rect.top) * scaleY;
+    var lay = getShareCardLayout();
+    var cardTop = lay.cardTop;
+    var shareBtnY = lay.btnY;
+    // Share/Copy button
+    if (tapY > shareBtnY - 20 && tapY < shareBtnY + 20 && tapX > W/2 - 130 && tapX < W/2 - 10) {
+      triggerShare();
+      return;
+    }
+    // Retry button
+    if (tapY > shareBtnY - 20 && tapY < shareBtnY + 20 && tapX > W/2 + 10 && tapX < W/2 + 130) {
+      startGame();
+      return;
+    }
+    // Outside card = back to game over
+    if (tapY < cardTop || tapY > shareBtnY + 40) {
+      gameState = 'gameover';
+      return;
+    }
+    return; // tap on card = do nothing (screenshot area)
   }
   const touch = e.touches[0];
   const rect = canvas.getBoundingClientRect();
@@ -448,8 +500,52 @@ canvas.addEventListener('click', (e) => {
     focusMobileInput();
     return;
   }
-  if (gameState === 'menu' || gameState === 'gameover') {
+  if (gameState === 'menu') {
     startGame();
+    return;
+  }
+  if (gameState === 'gameover') {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = W / rect.width;
+    const scaleY = H / rect.height;
+    const clickX = (e.clientX - rect.left) * scaleX;
+    const clickY = (e.clientY - rect.top) * scaleY;
+    const btnY = H * 0.88;
+    // Share button: centered at (W/2 - 65, btnY), size 110x40
+    if (clickY > btnY - 20 && clickY < btnY + 20 && clickX > W/2 - 120 && clickX < W/2 - 10) {
+      gameState = 'share';
+      shareButtonFlash = 0;
+      return;
+    }
+    // Retry button or anywhere else: restart
+    startGame();
+    return;
+  }
+  if (gameState === 'share') {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = W / rect.width;
+    const scaleY = H / rect.height;
+    const clickX = (e.clientX - rect.left) * scaleX;
+    const clickY = (e.clientY - rect.top) * scaleY;
+    var lay = getShareCardLayout();
+    var cardTop = lay.cardTop;
+    var shareBtnY = lay.btnY;
+    // Share/Copy button: (W/2 - 130, shareBtnY - 20, 120, 40)
+    if (clickY > shareBtnY - 20 && clickY < shareBtnY + 20 && clickX > W/2 - 130 && clickX < W/2 - 10) {
+      triggerShare();
+      return;
+    }
+    // Retry button: (W/2 + 10, shareBtnY - 20, 120, 40)
+    if (clickY > shareBtnY - 20 && clickY < shareBtnY + 20 && clickX > W/2 + 10 && clickX < W/2 + 130) {
+      startGame();
+      return;
+    }
+    // Tap anywhere else on the card area = do nothing (let them screenshot)
+    // Tap outside card = go back to game over
+    if (clickY < cardTop || clickY > shareBtnY + 40) {
+      gameState = 'gameover';
+      return;
+    }
   }
 });
 
@@ -1208,6 +1304,7 @@ function draw() {
   if (gameState === 'name') drawNameScreen();
   if (gameState === 'menu') drawMenuScreen();
   if (gameState === 'gameover') drawGameOverScreen();
+  if (gameState === 'share') drawShareScreen();
 }
 
 // ============================================================
@@ -2350,9 +2447,6 @@ function drawNameScreen() {
   ctx.fillStyle = COLORS.monkey;
   ctx.font = 'bold 40px Arial';
   ctx.fillText('THE MONKEY', W / 2, H * 0.22);
-  ctx.fillStyle = '#aaa';
-  ctx.font = '18px Arial';
-  ctx.fillText('ROCK RUNNER', W / 2, H * 0.26);
 
   // Prompt
   ctx.fillStyle = '#fbbf24';
@@ -2582,11 +2676,6 @@ function drawMenuScreen() {
   ctx.font = 'bold 40px Arial';
   ctx.fillText('THE MONKEY', W / 2, H * 0.16);
 
-  // Subtitle
-  ctx.fillStyle = '#aaa';
-  ctx.font = '18px Arial';
-  ctx.fillText('ROCK RUNNER', W / 2, H * 0.195);
-
   // Player name
   ctx.fillStyle = '#888';
   ctx.font = '13px Arial';
@@ -2678,6 +2767,238 @@ function drawMenuScreen() {
   ctx.textAlign = 'center';
   ctx.fillText('or press R to restart', W / 2, H * 0.83 + 36);
 
+}
+
+// ============================================================
+// SHARE / RESULT CARD SYSTEM
+// ============================================================
+function getShareCardLayout() {
+  var cardTop = H * 0.06;
+  // Must match the spacing in drawShareScreen()
+  var contentH = 40 + 20 + 26 + 26 + 68 + 56 + 40 + 20 + 22 + 20 + 18;
+  var cardH = contentH + 24;
+  var btnY = cardTop + cardH + 30;
+  return { cardTop: cardTop, cardH: cardH, btnY: btnY };
+}
+
+function getPlayerTitle(s, d, p) {
+  // Tiered titles based on score, distance, and plushies
+  if (s >= 200000) return 'Jungle Legend';
+  if (s >= 100000) return 'Plushie Overlord';
+  if (p >= 80) return 'Plushie Hoarder';
+  if (s >= 50000) return 'Monkey King';
+  if (d >= 500) return 'Marathon Monkey';
+  if (s >= 25000) return 'Troop Dodger';
+  if (p >= 30) return 'Plushie Collector';
+  if (s >= 10000) return 'Rock Hopper';
+  if (d >= 200) return 'Trail Blazer';
+  if (s >= 5000) return 'Brave Little Monkey';
+  if (p >= 10) return 'Plushie Finder';
+  if (s >= 1000) return 'First Steps';
+  return 'Baby Monkey';
+}
+
+function buildShareText() {
+  var title = getPlayerTitle(score, distance, plushiesCollected);
+  return 'Punch, the Monkey\n\n'
+    + title + '\n'
+    + 'Score: ' + score.toLocaleString() + '\n'
+    + 'Distance: ' + Math.floor(distance) + 'm\n'
+    + 'Plushies: ' + plushiesCollected + '\n\n'
+    + 'Can you beat me?\n'
+    + 'punchthegame.com\n\n'
+    + '#HangInTherePunch #がんばれパンチ';
+}
+
+let shareButtonFlash = 0; // for copy feedback animation
+
+async function triggerShare() {
+  var text = buildShareText();
+  // Try native share on mobile
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: 'Punch, the Monkey', text: text, url: 'https://punchthegame.com' });
+      return;
+    } catch(e) { /* user cancelled or not supported */ }
+  }
+  // Fallback: copy to clipboard
+  try {
+    await navigator.clipboard.writeText(text);
+    shareButtonFlash = 1; // trigger "Copied!" feedback
+  } catch(e) {
+    // Last resort fallback
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    shareButtonFlash = 1;
+  }
+}
+
+function drawShareScreen() {
+  // Full dark overlay
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fillRect(0, 0, W, H);
+
+  var title = getPlayerTitle(score, distance, plushiesCollected);
+  var lay = getShareCardLayout();
+  var cardX = W / 2;
+  var cardW = 400;
+  var cardTop = lay.cardTop;
+  var cardH = lay.cardH;
+  var cardLeft = cardX - cardW / 2;
+
+  // Card background with subtle gradient
+  var grad = ctx.createLinearGradient(cardLeft, cardTop, cardLeft, cardTop + cardH);
+  grad.addColorStop(0, '#2a2a4a');
+  grad.addColorStop(1, '#1a1a30');
+  ctx.fillStyle = grad;
+  roundRect(ctx, cardLeft, cardTop, cardW, cardH, 20);
+  ctx.fill();
+
+  // Card border glow
+  ctx.strokeStyle = 'rgba(251, 191, 36, 0.3)';
+  ctx.lineWidth = 2;
+  roundRect(ctx, cardLeft, cardTop, cardW, cardH, 20);
+  ctx.stroke();
+
+  // --- Draw content ---
+  ctx.textAlign = 'center';
+  ty = cardTop + 40;
+  ctx.fillStyle = COLORS.punchRed;
+  ctx.font = 'bold 22px Arial';
+  ctx.fillText('PUNCH, THE MONKEY', cardX, ty);
+
+  // Divider
+  ty += 20;
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(cardLeft + 40, ty);
+  ctx.lineTo(cardLeft + cardW - 40, ty);
+  ctx.stroke();
+
+  // Player name
+  ty += 26;
+  ctx.fillStyle = '#e4e4e7';
+  ctx.font = '15px Arial';
+  ctx.fillText(playerName, cardX, ty);
+
+  // Title badge — use middle baseline for proper centering
+  ty += 26;
+  ctx.font = 'bold 14px Arial';
+  var titleW = ctx.measureText(title.toUpperCase()).width + 30;
+  ctx.fillStyle = 'rgba(251, 191, 36, 0.15)';
+  roundRect(ctx, cardX - titleW / 2, ty - 14, titleW, 28, 14);
+  ctx.fill();
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#fbbf24';
+  ctx.fillText(title.toUpperCase(), cardX, ty);
+  ctx.textBaseline = 'alphabetic';
+
+  // Score (big)
+  ty += 68;
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 56px Arial';
+  ctx.fillText(score.toLocaleString(), cardX, ty);
+  ctx.fillStyle = '#888';
+  ctx.font = '13px Arial';
+  ctx.fillText('SCORE', cardX, ty + 24);
+
+  // Stats row
+  ty += 56;
+  // Distance
+  ctx.fillStyle = '#d4d4d8';
+  ctx.font = 'bold 26px Arial';
+  ctx.fillText(Math.floor(distance) + 'm', cardX - 90, ty);
+  ctx.fillStyle = '#888';
+  ctx.font = '11px Arial';
+  ctx.fillText('DISTANCE', cardX - 90, ty + 18);
+
+  // Plushies
+  ctx.fillStyle = '#E85530';
+  ctx.font = 'bold 26px Arial';
+  ctx.fillText(plushiesCollected.toString(), cardX + 90, ty);
+  ctx.fillStyle = '#888';
+  ctx.font = '11px Arial';
+  ctx.fillText('PLUSHIES', cardX + 90, ty + 18);
+
+  // Platform badge
+  ty += 40;
+  var platLabel = detectedPlatform === 'mobile' ? 'MOBILE' : 'PC';
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  roundRect(ctx, cardX - 30, ty - 10, 60, 20, 10);
+  ctx.fill();
+  ctx.fillStyle = '#666';
+  ctx.font = '10px Arial';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(platLabel, cardX, ty);
+  ctx.textBaseline = 'alphabetic';
+
+  // Divider
+  ty += 20;
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.beginPath();
+  ctx.moveTo(cardLeft + 40, ty);
+  ctx.lineTo(cardLeft + cardW - 40, ty);
+  ctx.stroke();
+
+  // Charity line
+  ty += 22;
+  ctx.fillStyle = '#888';
+  ctx.font = '12px Arial';
+  ctx.fillText('75% of donations go to World Animal Protection', cardX, ty);
+
+  // URL
+  ty += 20;
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = 'bold 14px Arial';
+  ctx.fillText('punchthegame.com', cardX, ty);
+
+  // Hashtag
+  ty += 18;
+  ctx.fillStyle = '#666';
+  ctx.font = '12px Arial';
+  ctx.fillText('#HangInTherePunch  #がんばれパンチ', cardX, ty);
+
+  // --- Buttons below the card ---
+  var btnY = lay.btnY;
+
+  // Share/Copy button
+  var shareLabel = shareButtonFlash > 0 ? 'COPIED!' : (navigator.share ? 'SHARE' : 'COPY RESULT');
+  ctx.fillStyle = '#fbbf24';
+  roundRect(ctx, cardX - 130, btnY - 20, 120, 40, 20);
+  ctx.fill();
+  ctx.fillStyle = '#1a1a2e';
+  ctx.font = 'bold 15px Arial';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(shareLabel, cardX - 70, btnY);
+
+  // Retry button
+  ctx.fillStyle = COLORS.punchRed;
+  roundRect(ctx, cardX + 10, btnY - 20, 120, 40, 20);
+  ctx.fill();
+  ctx.fillStyle = '#CC3333';
+  roundRect(ctx, cardX + 10, btnY, 120, 20, { bl: 20, br: 20, tl: 0, tr: 0 });
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 15px Arial';
+  ctx.fillText('RETRY', cardX + 70, btnY);
+
+  ctx.textBaseline = 'alphabetic';
+
+  // "or press R" hint
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.font = '12px Arial';
+  ctx.fillText('or press R to restart', cardX, btnY + 34);
+
+  // Decay the flash
+  if (shareButtonFlash > 0) {
+    shareButtonFlash -= 0.016; // ~1 second at 60fps
+    if (shareButtonFlash <= 0) shareButtonFlash = 0;
+  }
 }
 
 function drawGameOverScreen() {
@@ -2776,31 +3097,46 @@ function drawGameOverScreen() {
   // Leaderboard
   drawLeaderboard(H * 0.37, true);
 
-  // Retry button
+  // Buttons row
   const pulse = 1 + Math.sin(Date.now() * 0.005) * 0.03;
+  const btnY = H * 0.88;
+
+  // Share button (left)
   ctx.save();
-  ctx.translate(W / 2, H * 0.88);
+  ctx.translate(W / 2 - 65, btnY);
   ctx.scale(pulse, pulse);
-
-  ctx.fillStyle = COLORS.punchRed;
-  roundRect(ctx, -80, -22, 160, 44, 22);
+  ctx.fillStyle = '#fbbf24';
+  roundRect(ctx, -55, -20, 110, 40, 20);
   ctx.fill();
-  ctx.fillStyle = '#CC3333';
-  roundRect(ctx, -80, 0, 160, 22, { bl: 22, br: 22, tl: 0, tr: 0 });
-  ctx.fill();
-
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 18px Arial';
+  ctx.fillStyle = '#1a1a2e';
+  ctx.font = 'bold 15px Arial';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('TAP TO RETRY', 0, 0);
+  ctx.fillText('SHARE', 0, 0);
+  ctx.restore();
+
+  // Retry button (right)
+  ctx.save();
+  ctx.translate(W / 2 + 65, btnY);
+  ctx.scale(pulse, pulse);
+  ctx.fillStyle = COLORS.punchRed;
+  roundRect(ctx, -55, -20, 110, 40, 20);
+  ctx.fill();
+  ctx.fillStyle = '#CC3333';
+  roundRect(ctx, -55, 0, 110, 20, { bl: 20, br: 20, tl: 0, tr: 0 });
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.font = 'bold 15px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('RETRY', 0, 0);
   ctx.restore();
 
   // "or press R" hint for desktop
   ctx.fillStyle = 'rgba(255,255,255,0.45)';
   ctx.font = '13px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('or press R to restart', W / 2, H * 0.88 + 36);
+  ctx.fillText('or press R to restart', W / 2, btnY + 36);
 }
 
 function roundRect(ctx, x, y, w, h, r) {
