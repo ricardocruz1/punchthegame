@@ -336,6 +336,104 @@
     border-bottom-color: #fbbf24;
   }
 
+  /* ---------- GLOBAL STATS ---------- */
+  .global-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .global-stats .stats-loading {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: #666;
+    font-size: 13px;
+    padding: 12px 0;
+  }
+  .stat-item {
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fbbf24;
+    display: block;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+    display: block;
+  }
+  .stat-item.full-width {
+    grid-column: 1 / -1;
+  }
+  .stats-card h3 {
+    margin-bottom: 10px;
+  }
+
+  /* ---------- CONTROLS + STATS COMBINED CARD ---------- */
+  .controls-stats-row {
+    display: flex;
+    gap: 20px;
+  }
+  .controls-stats-row .controls-col,
+  .controls-stats-row .stats-col {
+    flex: 1;
+    min-width: 0;
+  }
+  .controls-stats-row .controls-col h3,
+  .controls-stats-row .stats-col h3,
+  .controls-stats-stack .controls-col h3,
+  .controls-stats-stack .stats-col h3 {
+    font-size: 14px;
+    font-weight: 700;
+    color: #e4e4e7;
+    margin-bottom: 8px;
+  }
+  /* Tighter stat tiles when inside the combo card */
+  .stats-col .global-stats {
+    gap: 6px;
+  }
+  .stats-col .stat-item {
+    padding: 7px 6px;
+  }
+  .stats-col .stat-value {
+    font-size: 16px;
+  }
+  .stats-col .stat-label {
+    font-size: 10px;
+  }
+  /* Hide divider on desktop (only used in mobile stack) */
+  .controls-stats-divider {
+    display: none;
+  }
+  /* Mobile stacked layout */
+  .controls-stats-stack {
+    display: flex;
+    flex-direction: column;
+  }
+  .controls-stats-stack .controls-stats-divider {
+    display: block;
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    margin: 14px 0;
+  }
+  .controls-stats-stack .stats-col .global-stats {
+    gap: 8px;
+  }
+  .controls-stats-stack .stats-col .stat-value {
+    font-size: 18px;
+  }
+  .controls-stats-stack .stats-col .stat-label {
+    font-size: 11px;
+  }
+
   /* ---------- GAME COLUMN ---------- */
   .game-column {
     flex-shrink: 0;
@@ -559,6 +657,11 @@
     .page-wrapper { gap: 16px; padding: 12px; }
     .panel { height: calc(100vh - 24px); }
     #gameContainer { height: calc(100vh - 24px); }
+    .controls-stats-row { gap: 14px; }
+    .stats-col .stat-value { font-size: 14px; }
+    .stats-col .stat-label { font-size: 9px; }
+    .stats-col .stat-item { padding: 5px 4px; }
+    .stats-col .global-stats { gap: 5px; }
   }
 
   /* ---------- RESPONSIVE: TABLET ---------- */
@@ -747,36 +850,42 @@
       </p>
     </div>
 
-    <div class="panel-card">
-      <h3>Controls</h3>
-      <div class="controls-grid">
-        <div class="control-row">
-          <span class="key-badge">&larr;</span>
-          <span class="key-badge">A</span>
-          <span class="control-label">Move left</span>
+    <div class="panel-card controls-stats-card">
+      <div class="controls-stats-row">
+        <div class="controls-col">
+          <h3>Controls</h3>
+          <div class="controls-grid">
+            <div class="control-row">
+              <span class="key-badge">&larr;</span>
+              <span class="key-badge">A</span>
+              <span class="control-label">Move left</span>
+            </div>
+            <div class="control-row">
+              <span class="key-badge">&rarr;</span>
+              <span class="key-badge">D</span>
+              <span class="control-label">Move right</span>
+            </div>
+            <div class="control-row">
+              <span class="key-badge">&uarr;</span>
+              <span class="key-badge">W</span>
+              <span class="control-label">Jump</span>
+            </div>
+            <div class="control-row">
+              <span class="key-badge">&darr;</span>
+              <span class="key-badge">S</span>
+              <span class="control-label">Roll</span>
+            </div>
+            <div class="control-row">
+              <span class="key-badge">R</span>
+              <span class="control-label">Restart</span>
+            </div>
+          </div>
         </div>
-        <div class="control-row">
-          <span class="key-badge">&rarr;</span>
-          <span class="key-badge">D</span>
-          <span class="control-label">Move right</span>
-        </div>
-        <div class="control-row">
-          <span class="key-badge">&uarr;</span>
-          <span class="key-badge">W</span>
-          <span class="control-label">Jump over rocks</span>
-        </div>
-        <div class="control-row">
-          <span class="key-badge">&darr;</span>
-          <span class="key-badge">S</span>
-          <span class="control-label">Roll under logs</span>
-        </div>
-        <div class="control-row">
-          <span class="key-badge">Swipe</span>
-          <span class="control-label">Touch controls on mobile</span>
-        </div>
-        <div class="control-row">
-          <span class="key-badge">R</span>
-          <span class="control-label">Restart game</span>
+        <div class="stats-col">
+          <h3>Community</h3>
+          <div id="panelGlobalStats" class="global-stats">
+            <div class="stats-loading">Loading...</div>
+          </div>
         </div>
       </div>
     </div>
@@ -916,24 +1025,35 @@
     </p>
   </div>
 
-  <div class="panel-card">
-    <h3>Controls</h3>
-    <div class="controls-grid">
-      <div class="control-row">
-        <span class="key-badge">Swipe L/R</span>
-        <span class="control-label">Switch lanes</span>
+  <div class="panel-card controls-stats-card">
+    <div class="controls-stats-stack">
+      <div class="controls-col">
+        <h3>Controls</h3>
+        <div class="controls-grid">
+          <div class="control-row">
+            <span class="key-badge">Swipe L/R</span>
+            <span class="control-label">Switch lanes</span>
+          </div>
+          <div class="control-row">
+            <span class="key-badge">Swipe Up</span>
+            <span class="control-label">Jump over rocks</span>
+          </div>
+          <div class="control-row">
+            <span class="key-badge">Swipe Down</span>
+            <span class="control-label">Roll under logs</span>
+          </div>
+          <div class="control-row">
+            <span class="key-badge">&#x21BA;</span>
+            <span class="control-label">Restart (top-left button)</span>
+          </div>
+        </div>
       </div>
-      <div class="control-row">
-        <span class="key-badge">Swipe Up</span>
-        <span class="control-label">Jump over rocks</span>
-      </div>
-      <div class="control-row">
-        <span class="key-badge">Swipe Down</span>
-        <span class="control-label">Roll under logs</span>
-      </div>
-      <div class="control-row">
-        <span class="key-badge">&#x21BA;</span>
-        <span class="control-label">Restart (top-left button)</span>
+      <hr class="controls-stats-divider">
+      <div class="stats-col">
+        <h3>Community</h3>
+        <div id="mobileGlobalStats" class="global-stats">
+          <div class="stats-loading">Loading...</div>
+        </div>
       </div>
     </div>
   </div>
@@ -1209,6 +1329,29 @@ window.addEventListener('highScoreUpdated', updateDonateGate);
 
   // Also refresh every 60s
   setInterval(fetchAllLeaderboards, 60000);
+
+  // ============================================================
+  // GLOBAL STATS RENDERING (panels)
+  // ============================================================
+  function renderStatsHTML(stats) {
+    if (!stats) return '<div class="stats-loading">Loading...</div>';
+    var km = stats.totalDistance / 1000;
+    var distStr = km >= 1 ? Math.floor(km).toLocaleString() + 'km' : Math.floor(stats.totalDistance).toLocaleString() + 'm';
+    return '<div class="stat-item"><span class="stat-value">' + stats.totalGames.toLocaleString() + '</span><span class="stat-label">Games Played Worldwide</span></div>'
+      + '<div class="stat-item"><span class="stat-value">' + stats.uniquePlayers.toLocaleString() + '</span><span class="stat-label">Monkeys Joined the Run</span></div>'
+      + '<div class="stat-item"><span class="stat-value">' + distStr + '</span><span class="stat-label">Run by All Players Combined</span></div>'
+      + '<div class="stat-item"><span class="stat-value">' + stats.totalPlushies.toLocaleString() + '</span><span class="stat-label">Plushies Rescued So Far</span></div>'
+      + '<div class="stat-item full-width"><span class="stat-value">' + stats.topScore.toLocaleString() + '</span><span class="stat-label">All-Time Highest Score</span></div>';
+  }
+
+  window.renderGlobalStats = function(stats) {
+    var panel = document.getElementById('panelGlobalStats');
+    var mobile = document.getElementById('mobileGlobalStats');
+    var html = renderStatsHTML(stats);
+    if (panel) panel.innerHTML = html;
+    if (mobile) mobile.innerHTML = html;
+  };
+
 })();
 </script>
 <script src="game.js"></script>

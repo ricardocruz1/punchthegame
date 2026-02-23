@@ -47,6 +47,59 @@ let leaderboardLoading = false;
 let leaderboardLastFetch = 0;
 const LEADERBOARD_CACHE_MS = 30000; // refresh every 30s max
 
+// ============================================================
+// GLOBAL STATS STATE
+// ============================================================
+let globalStats = null; // { totalGames, uniquePlayers, totalDistance, totalPlushies, topScore }
+let globalStatsLastFetch = 0;
+const GLOBAL_STATS_CACHE_MS = 60000; // refresh every 60s
+
+// Roll-up stat display
+let statIndex = 0;
+let statTimer = 0;
+let statTransition = 0; // 0 = showing, >0 = animating out/in
+const STAT_DISPLAY_MS = 3500; // show each stat for 3.5s
+const STAT_TRANSITION_MS = 400; // roll animation duration
+
+function getStatEntries() {
+  if (!globalStats) return [];
+  var s = globalStats;
+  var entries = [];
+  if (s.totalGames > 0) entries.push({ value: s.totalGames.toLocaleString(), label: 'games played worldwide' });
+  if (s.uniquePlayers > 0) entries.push({ value: s.uniquePlayers.toLocaleString(), label: 'monkeys joined the run' });
+  if (s.totalDistance > 0) {
+    var km = s.totalDistance / 1000;
+    var distStr = km >= 1 ? Math.floor(km).toLocaleString() + 'km' : Math.floor(s.totalDistance).toLocaleString() + 'm';
+    entries.push({ value: distStr, label: 'run by all players combined' });
+  }
+  if (s.totalPlushies > 0) entries.push({ value: s.totalPlushies.toLocaleString(), label: 'plushies rescued so far' });
+  if (s.topScore > 0) entries.push({ value: s.topScore.toLocaleString(), label: 'all-time highest score' });
+  return entries;
+}
+
+async function fetchGlobalStats() {
+  if (!supabaseClient) return;
+  if (Date.now() - globalStatsLastFetch < GLOBAL_STATS_CACHE_MS && globalStats) return;
+  try {
+    const { data, error } = await supabaseClient.rpc('get_global_stats');
+    if (!error && data && data.length > 0) {
+      var r = data[0];
+      globalStats = {
+        totalGames: r.total_games || 0,
+        uniquePlayers: r.unique_players || 0,
+        totalDistance: r.total_distance || 0,
+        totalPlushies: r.total_plushies || 0,
+        topScore: r.top_score || 0
+      };
+      globalStatsLastFetch = Date.now();
+      // Also update HTML panels
+      if (window.renderGlobalStats) window.renderGlobalStats(globalStats);
+    }
+  } catch (e) {
+    console.warn('Global stats fetch failed:', e);
+  }
+}
+
 async function fetchLeaderboard() {
   if (!supabaseClient) return;
   if (leaderboardLoading) return;
@@ -2767,6 +2820,75 @@ function drawMenuScreen() {
   ctx.textAlign = 'center';
   ctx.fillText('or press R to restart', W / 2, H * 0.83 + 36);
 
+  // Community stats roll-up display
+  var entries = getStatEntries();
+  if (entries.length > 0) {
+    var now = Date.now();
+    if (statTimer === 0) statTimer = now;
+    var elapsed = now - statTimer;
+
+    // Determine phase: showing or transitioning
+    var totalCycle = STAT_DISPLAY_MS + STAT_TRANSITION_MS;
+    var cyclePos = elapsed % totalCycle;
+    var isTransitioning = cyclePos > STAT_DISPLAY_MS;
+    var t = isTransitioning ? (cyclePos - STAT_DISPLAY_MS) / STAT_TRANSITION_MS : 0; // 0..1
+
+    // Advance to next stat when transition completes
+    var currentIdx = Math.floor(elapsed / totalCycle) % entries.length;
+    var nextIdx = (currentIdx + 1) % entries.length;
+
+    var current = entries[currentIdx];
+    var next = entries[nextIdx];
+
+    var baseY = H * 0.935;
+    var rollDist = 30; // pixels to roll
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, baseY - 28, W, 48);
+    ctx.clip();
+
+    ctx.textAlign = 'center';
+
+    if (isTransitioning) {
+      // Ease out cubic
+      var ease = 1 - Math.pow(1 - t, 3);
+      var outY = baseY - ease * rollDist;
+      var inY = baseY + rollDist - ease * rollDist;
+      var outAlpha = 1 - ease;
+      var inAlpha = ease;
+
+      // Current stat rolling out (up)
+      ctx.globalAlpha = outAlpha * 0.9;
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 18px Arial';
+      ctx.fillText(current.value, W / 2, outY);
+      ctx.fillStyle = '#a1a1aa';
+      ctx.font = '11px Arial';
+      ctx.fillText(current.label, W / 2, outY + 16);
+
+      // Next stat rolling in (from below)
+      ctx.globalAlpha = inAlpha * 0.9;
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 18px Arial';
+      ctx.fillText(next.value, W / 2, inY);
+      ctx.fillStyle = '#a1a1aa';
+      ctx.font = '11px Arial';
+      ctx.fillText(next.label, W / 2, inY + 16);
+    } else {
+      // Static display
+      ctx.globalAlpha = 0.9;
+      ctx.fillStyle = '#fbbf24';
+      ctx.font = 'bold 18px Arial';
+      ctx.fillText(current.value, W / 2, baseY);
+      ctx.fillStyle = '#a1a1aa';
+      ctx.font = '11px Arial';
+      ctx.fillText(current.label, W / 2, baseY + 16);
+    }
+
+    ctx.restore();
+  }
+
 }
 
 // ============================================================
@@ -3321,4 +3443,5 @@ function gameLoop(timestamp) {
 
 // Start!
 fetchLeaderboard();
+fetchGlobalStats();
 requestAnimationFrame(gameLoop);
