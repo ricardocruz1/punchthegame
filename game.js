@@ -1153,6 +1153,22 @@ function draw() {
   }
 
   // --- PLAYER ---
+  // Jump shadow (ground indicator)
+  if (player.isJumping) {
+    const maxJumpHeight = 120; // approximate max jump arc
+    const airHeight = LANE_Y_BASE - player.y; // 0 at ground, ~120 at peak
+    const t = Math.min(airHeight / maxJumpHeight, 1); // 0..1 normalized
+    const shadowW = 30 * (1 - t * 0.6);  // shrinks to 40% at peak
+    const shadowH = 6 * (1 - t * 0.5);
+    const shadowAlpha = 0.35 * (1 - t * 0.7); // fades at peak
+    ctx.save();
+    ctx.globalAlpha = shadowAlpha;
+    ctx.fillStyle = '#000';
+    ctx.beginPath();
+    ctx.ellipse(player.x, LANE_Y_BASE + 4, shadowW, shadowH, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
   if (player.alive || frameCount % 4 < 2) {
     drawPlayer();
   }
