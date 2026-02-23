@@ -2603,7 +2603,9 @@ function drawMenuScreen() {
 
   ctx.fillStyle = '#fff';
   ctx.font = 'bold 20px Arial';
-  ctx.fillText('TAP TO START', 0, 7);
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('TAP TO START', 0, 0);
   ctx.restore();
 
 
