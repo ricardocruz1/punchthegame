@@ -20,9 +20,9 @@ ctx.scale(2, 2);
 // ============================================================
 const SUPABASE_URL = 'https://oruxxgyqjxcziaqxzrdg.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ydXh4Z3lxanhjemlhcXh6cmRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjM3NjIsImV4cCI6MjA4NzQzOTc2Mn0.cGWDNCe5BFJtEjzy1gz4lboUtijurDGm3JiOZBfcCAc';
-let supabase = null;
+let supabaseClient = null;
 try {
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 } catch (e) {
   console.warn('Supabase init failed:', e);
 }
@@ -36,13 +36,13 @@ let leaderboardLastFetch = 0;
 const LEADERBOARD_CACHE_MS = 30000; // refresh every 30s max
 
 async function fetchLeaderboard() {
-  if (!supabase) return;
+  if (!supabaseClient) return;
   if (leaderboardLoading) return;
   if (Date.now() - leaderboardLastFetch < LEADERBOARD_CACHE_MS && leaderboardData.length > 0) return;
 
   leaderboardLoading = true;
   try {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
       .from('leaderboard')
       .select('name, score')
       .order('score', { ascending: false })
@@ -59,9 +59,9 @@ async function fetchLeaderboard() {
 }
 
 async function submitScore(name, scoreVal) {
-  if (!supabase) return;
+  if (!supabaseClient) return;
   try {
-    await supabase
+    await supabaseClient
       .from('leaderboard')
       .insert([{ name: name.substring(0, 20), score: scoreVal }]);
     // Force refresh leaderboard after submit
