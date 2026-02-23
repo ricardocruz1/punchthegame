@@ -366,6 +366,14 @@
     display: none;
   }
 
+  .mobile-fab {
+    display: none;
+  }
+
+  .mobile-fab-menu {
+    display: none;
+  }
+
   .mobile-overlay {
     display: none;
   }
@@ -401,53 +409,88 @@
       margin: 0 auto;
     }
 
-    /* Show mobile bottom bar */
-    .mobile-bar {
+    /* Floating menu button */
+    .mobile-fab {
       display: flex;
       position: fixed;
-      bottom: 6px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 100;
-      background: rgba(15, 15, 26, 0.75);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255,255,255,0.08);
-      padding: 4px 6px;
-      gap: 4px;
-      justify-content: center;
+      top: 10px;
+      right: 10px;
+      z-index: 150;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(15, 15, 26, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #e4e4e7;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
       align-items: center;
-      border-radius: 10px;
-      width: auto;
+      justify-content: center;
+      transition: transform 0.15s, background 0.15s;
+      line-height: 1;
     }
 
-    .mobile-bar-btn {
-      text-align: center;
-      padding: 5px 10px;
-      border-radius: 7px;
-      font-size: 11px;
-      font-weight: 700;
+    .mobile-fab:active {
+      transform: scale(0.9);
+    }
+
+    .mobile-fab-menu {
+      display: none;
+      position: fixed;
+      top: 52px;
+      right: 10px;
+      z-index: 150;
+      background: rgba(15, 15, 26, 0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 6px;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 160px;
+    }
+
+    .mobile-fab-menu.active {
+      display: flex;
+    }
+
+    .mobile-fab-menu-item {
+      display: block;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
       text-decoration: none;
       cursor: pointer;
       border: none;
       font-family: inherit;
-      transition: transform 0.1s;
+      color: #e4e4e7;
+      background: transparent;
+      text-align: left;
+      transition: background 0.1s;
       white-space: nowrap;
     }
 
-    .mobile-bar-btn:active {
-      transform: scale(0.96);
-    }
-
-    .btn-info {
+    .mobile-fab-menu-item:active {
       background: rgba(255,255,255,0.08);
-      color: #e4e4e7;
     }
 
-    .btn-donate {
-      background: linear-gradient(135deg, #FF5E5B, #e04e4b);
-      color: #fff;
-      box-shadow: 0 2px 12px rgba(255, 94, 91, 0.3);
+    .mobile-fab-menu-item.menu-donate {
+      color: #f87171;
+      font-weight: 700;
+    }
+
+    .mobile-fab-menu-item.menu-donate.locked {
+      color: #52525b;
+    }
+
+    .mobile-bar {
+      display: none !important;
     }
 
     /* Mobile overlay panels */
@@ -651,7 +694,15 @@
 
 </div>
 
-<!-- ======== MOBILE BOTTOM BAR ======== -->
+<!-- ======== MOBILE FLOATING MENU ======== -->
+<button class="mobile-fab" id="mobileFab" onclick="toggleFabMenu()">&#x2630;</button>
+<div class="mobile-fab-menu" id="mobileFabMenu">
+  <button class="mobile-fab-menu-item" onclick="toggleFabMenu(); toggleOverlay('info-overlay')">How to Play</button>
+  <button class="mobile-fab-menu-item" onclick="toggleFabMenu(); toggleOverlay('story-overlay')">Punch's Story</button>
+  <a class="mobile-fab-menu-item menu-donate" id="mobileFabDonate" href="https://ko-fi.com/punchthegame" target="_blank" rel="noopener">Donate</a>
+</div>
+
+<!-- ======== MOBILE BOTTOM BAR (hidden, kept for compat) ======== -->
 <div class="mobile-bar">
   <button class="mobile-bar-btn btn-info" onclick="toggleOverlay('info-overlay')">How to Play</button>
   <button class="mobile-bar-btn btn-info" onclick="toggleOverlay('story-overlay')">Punch's Story</button>
@@ -769,6 +820,20 @@ function toggleOverlay(id) {
   el.classList.toggle('active');
 }
 
+// ---------- FLOATING MENU ----------
+function toggleFabMenu() {
+  document.getElementById('mobileFabMenu').classList.toggle('active');
+}
+
+// Close fab menu when tapping outside
+document.addEventListener('click', function(e) {
+  const fab = document.getElementById('mobileFab');
+  const menu = document.getElementById('mobileFabMenu');
+  if (fab && menu && !fab.contains(e.target) && !menu.contains(e.target)) {
+    menu.classList.remove('active');
+  }
+});
+
 // ---------- DONATE GATE ----------
 const DONATE_UNLOCK_SCORE = 10000;
 
@@ -797,7 +862,22 @@ function updateDonateGate() {
     if (sub) sub.textContent = 'Your best: ' + hs.toLocaleString() + ' / ' + DONATE_UNLOCK_SCORE.toLocaleString();
   }
 
-  // Mobile bottom bar donate button
+  // Fab menu donate item
+  const fbd = document.getElementById('mobileFabDonate');
+  if (fbd) {
+    if (unlocked) {
+      fbd.classList.remove('locked');
+      fbd.textContent = 'Donate';
+      fbd.href = 'https://ko-fi.com/punchthegame';
+      fbd.style.pointerEvents = '';
+    } else {
+      fbd.classList.add('locked');
+      fbd.textContent = '10k to Donate';
+      fbd.style.pointerEvents = 'none';
+    }
+  }
+
+  // Mobile bottom bar donate button (legacy)
   const mbd = document.getElementById('mobileBarDonate');
   if (mbd) {
     if (unlocked) {
