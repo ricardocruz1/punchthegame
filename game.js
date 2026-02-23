@@ -16,6 +16,71 @@ canvas.height = H * 2;
 ctx.scale(2, 2);
 
 // ============================================================
+// SUPABASE
+// ============================================================
+const SUPABASE_URL = 'https://oruxxgyqjxcziaqxzrdg.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ydXh4Z3lxanhjemlhcXh6cmRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjM3NjIsImV4cCI6MjA4NzQzOTc2Mn0.cGWDNCe5BFJtEjzy1gz4lboUtijurDGm3JiOZBfcCAc';
+let supabase = null;
+try {
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+} catch (e) {
+  console.warn('Supabase init failed:', e);
+}
+
+// ============================================================
+// LEADERBOARD STATE
+// ============================================================
+let leaderboardData = [];      // top 10 scores [{name, score, created_at}]
+let leaderboardLoading = false;
+let leaderboardLastFetch = 0;
+const LEADERBOARD_CACHE_MS = 30000; // refresh every 30s max
+
+async function fetchLeaderboard() {
+  if (!supabase) return;
+  if (leaderboardLoading) return;
+  if (Date.now() - leaderboardLastFetch < LEADERBOARD_CACHE_MS && leaderboardData.length > 0) return;
+
+  leaderboardLoading = true;
+  try {
+    const { data, error } = await supabase
+      .from('leaderboard')
+      .select('name, score')
+      .order('score', { ascending: false })
+      .limit(10);
+
+    if (!error && data) {
+      leaderboardData = data;
+      leaderboardLastFetch = Date.now();
+    }
+  } catch (e) {
+    console.warn('Leaderboard fetch failed:', e);
+  }
+  leaderboardLoading = false;
+}
+
+async function submitScore(name, scoreVal) {
+  if (!supabase) return;
+  try {
+    await supabase
+      .from('leaderboard')
+      .insert([{ name: name.substring(0, 20), score: scoreVal }]);
+    // Force refresh leaderboard after submit
+    leaderboardLastFetch = 0;
+    fetchLeaderboard();
+  } catch (e) {
+    console.warn('Score submit failed:', e);
+  }
+}
+
+// ============================================================
+// PLAYER NAME
+// ============================================================
+let playerName = localStorage.getItem('punchPlayerName') || '';
+let nameInputActive = false;
+let nameInputCursor = 0;
+let nameInputBlink = 0;
+
+// ============================================================
 // CONSTANTS
 // ============================================================
 const LANE_COUNT = 3;
@@ -67,7 +132,7 @@ const COLORS = {
 // ============================================================
 // GAME STATE
 // ============================================================
-let gameState = 'menu'; // menu, playing, gameover
+let gameState = playerName ? 'menu' : 'name'; // name, menu, playing, gameover
 let score = 0;
 let highScore = parseInt(localStorage.getItem('punchMonkeyHighScore') || '0');
 let plushiesCollected = 0;
@@ -153,6 +218,34 @@ const input = {
 };
 
 document.addEventListener('keydown', (e) => {
+  // --- NAME INPUT SCREEN ---
+  if (gameState === 'name') {
+    if (e.code === 'Enter' || e.code === 'NumpadEnter') {
+      if (playerName.length >= 1) {
+        localStorage.setItem('punchPlayerName', playerName);
+        gameState = 'menu';
+        if (mobileNameInput) mobileNameInput.blur();
+        fetchLeaderboard();
+      }
+      return;
+    }
+    if (e.code === 'Backspace') {
+      e.preventDefault();
+      playerName = playerName.slice(0, -1);
+      return;
+    }
+    // Allow typed characters (letters, numbers, some symbols)
+    if (e.key.length === 1 && playerName.length < 15) {
+      // Filter to printable ASCII
+      const c = e.key;
+      if (/^[a-zA-Z0-9 _\-.]$/.test(c)) {
+        playerName += c;
+      }
+      return;
+    }
+    return;
+  }
+
   if (gameState === 'menu') {
     if (e.code === 'Space' || e.code === 'Enter') startGame();
     return;
@@ -187,8 +280,68 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Touch / swipe support
+// ============================================================
+// MOBILE NAME INPUT SUPPORT
+// ============================================================
+const mobileNameInput = document.getElementById('mobileNameInput');
+
+if (mobileNameInput) {
+  mobileNameInput.addEventListener('input', () => {
+    if (gameState !== 'name') return;
+    // Filter to allowed characters and limit length
+    let val = mobileNameInput.value.replace(/[^a-zA-Z0-9 _\-.]/g, '').substring(0, 15);
+    mobileNameInput.value = val;
+    playerName = val;
+  });
+
+  mobileNameInput.addEventListener('keydown', (e) => {
+    if (gameState !== 'name') return;
+    if (e.code === 'Enter' || e.code === 'NumpadEnter') {
+      e.preventDefault();
+      if (playerName.length >= 1) {
+        localStorage.setItem('punchPlayerName', playerName);
+        gameState = 'menu';
+        mobileNameInput.blur();
+        fetchLeaderboard();
+      }
+    }
+  });
+}
+
+function focusMobileInput() {
+  if (mobileNameInput && gameState === 'name') {
+    mobileNameInput.value = playerName;
+    mobileNameInput.style.position = 'absolute';
+    mobileNameInput.style.top = '50%';
+    mobileNameInput.style.left = '50%';
+    mobileNameInput.style.opacity = '0';
+    mobileNameInput.style.pointerEvents = 'auto';
+    mobileNameInput.focus();
+  }
+}
+
 canvas.addEventListener('touchstart', (e) => {
   e.preventDefault();
+  if (gameState === 'name') {
+    // Check if tapping the "Continue" button area
+    if (playerName.length >= 1) {
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = W / rect.width;
+      const scaleY = H / rect.height;
+      const tapY = (touch.clientY - rect.top) * scaleY;
+      const tapX = (touch.clientX - rect.left) * scaleX;
+      if (tapY > H * 0.62 && tapY < H * 0.66 && tapX > W/2 - 80 && tapX < W/2 + 80) {
+        localStorage.setItem('punchPlayerName', playerName);
+        gameState = 'menu';
+        if (mobileNameInput) mobileNameInput.blur();
+        fetchLeaderboard();
+        return;
+      }
+    }
+    focusMobileInput();
+    return;
+  }
   if (gameState === 'menu' || gameState === 'gameover') {
     startGame();
     return;
@@ -232,7 +385,27 @@ canvas.addEventListener('touchend', (e) => {
 }, { passive: false });
 
 // Mouse click for menu
-canvas.addEventListener('click', () => {
+canvas.addEventListener('click', (e) => {
+  if (gameState === 'name') {
+    // Check if clicking the "Continue" button area
+    if (playerName.length >= 1) {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = W / rect.width;
+      const scaleY = H / rect.height;
+      const clickY = (e.clientY - rect.top) * scaleY;
+      const clickX = (e.clientX - rect.left) * scaleX;
+      // Button is at H * 0.64, size ~160x44, centered
+      if (clickY > H * 0.62 && clickY < H * 0.66 && clickX > W/2 - 80 && clickX < W/2 + 80) {
+        localStorage.setItem('punchPlayerName', playerName);
+        gameState = 'menu';
+        if (mobileNameInput) mobileNameInput.blur();
+        fetchLeaderboard();
+        return;
+      }
+    }
+    focusMobileInput();
+    return;
+  }
   if (gameState === 'menu' || gameState === 'gameover') {
     startGame();
   }
@@ -851,6 +1024,11 @@ function gameOver() {
     window.dispatchEvent(new Event('highScoreUpdated'));
   }
 
+  // Submit score to leaderboard
+  if (playerName && score > 0) {
+    submitScore(playerName, score);
+  }
+
   // Death particles
   spawnParticles(player.x, player.y - player.height / 2, 20, COLORS.monkey, 8);
   spawnParticles(player.x, player.y - player.height / 2, 10, '#FF4444', 6);
@@ -958,6 +1136,7 @@ function draw() {
   ctx.restore();
 
   // --- OVERLAYS ---
+  if (gameState === 'name') drawNameScreen();
   if (gameState === 'menu') drawMenuScreen();
   if (gameState === 'gameover') drawGameOverScreen();
 }
@@ -2086,6 +2265,217 @@ function drawHUD() {
 }
 
 // ============================================================
+// NAME INPUT SCREEN
+// ============================================================
+function drawNameScreen() {
+  // Background
+  ctx.fillStyle = 'rgba(0,0,0,0.85)';
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.textAlign = 'center';
+
+  // Title
+  ctx.fillStyle = COLORS.punchRed;
+  ctx.font = 'bold 36px Arial';
+  ctx.fillText('PUNCH THE', W / 2, H * 0.15);
+  ctx.fillStyle = COLORS.monkey;
+  ctx.font = 'bold 44px Arial';
+  ctx.fillText('MONKEY', W / 2, H * 0.22);
+  ctx.fillStyle = '#aaa';
+  ctx.font = '18px Arial';
+  ctx.fillText('ROCK RUNNER', W / 2, H * 0.26);
+
+  // Prompt
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = 'bold 20px Arial';
+  ctx.fillText('ENTER YOUR NAME', W / 2, H * 0.38);
+
+  ctx.fillStyle = '#888';
+  ctx.font = '14px Arial';
+  ctx.fillText('This will appear on the world leaderboard', W / 2, H * 0.42);
+
+  // Input box
+  const boxW = 280;
+  const boxH = 50;
+  const boxX = W / 2 - boxW / 2;
+  const boxY = H * 0.46;
+
+  // Box background
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+  ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+  ctx.lineWidth = 2;
+  roundRect(ctx, boxX, boxY, boxW, boxH, 12);
+  ctx.fill();
+  roundRect(ctx, boxX, boxY, boxW, boxH, 12);
+  ctx.stroke();
+
+  // Name text
+  ctx.fillStyle = playerName.length > 0 ? '#fff' : '#555';
+  ctx.font = 'bold 24px Arial';
+  ctx.textAlign = 'center';
+  const displayText = playerName.length > 0 ? playerName : 'type here...';
+  ctx.fillText(displayText, W / 2, boxY + 33);
+
+  // Blinking cursor
+  nameInputBlink += 0.05;
+  if (Math.sin(nameInputBlink) > 0 && playerName.length < 15) {
+    const textWidth = ctx.measureText(playerName).width;
+    const cursorX = W / 2 + textWidth / 2 + 2;
+    ctx.fillStyle = '#fbbf24';
+    ctx.fillRect(cursorX, boxY + 12, 2, 26);
+  }
+
+  // Character count
+  ctx.fillStyle = '#555';
+  ctx.font = '12px Arial';
+  ctx.textAlign = 'right';
+  ctx.fillText(playerName.length + '/15', boxX + boxW - 8, boxY + boxH + 18);
+
+  // Continue button
+  ctx.textAlign = 'center';
+  if (playerName.length >= 1) {
+    const pulse = 1 + Math.sin(Date.now() * 0.005) * 0.03;
+    ctx.save();
+    ctx.translate(W / 2, H * 0.64);
+    ctx.scale(pulse, pulse);
+
+    ctx.fillStyle = COLORS.punchRed;
+    roundRect(ctx, -80, -22, 160, 44, 22);
+    ctx.fill();
+    ctx.fillStyle = '#CC3333';
+    roundRect(ctx, -80, 0, 160, 22, { bl: 22, br: 22, tl: 0, tr: 0 });
+    ctx.fill();
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 18px Arial';
+    ctx.fillText('CONTINUE', 0, 7);
+    ctx.restore();
+
+    ctx.fillStyle = '#555';
+    ctx.font = '13px Arial';
+    ctx.fillText('Press Enter', W / 2, H * 0.69);
+  } else {
+    ctx.fillStyle = '#444';
+    ctx.font = '14px Arial';
+    ctx.fillText('Type your name to continue', W / 2, H * 0.64);
+  }
+
+  // Small monkey preview at bottom
+  ctx.save();
+  ctx.translate(W / 2, H * 0.82);
+  const bob = Math.sin(Date.now() * 0.003) * 5;
+  ctx.translate(0, bob);
+  ctx.scale(0.6, 0.6);
+
+  // Simple Punch face
+  ctx.fillStyle = COLORS.monkey;
+  ctx.beginPath();
+  ctx.arc(0, 0, 30, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = COLORS.monkeyFace;
+  ctx.beginPath();
+  ctx.ellipse(0, 4, 20, 16, 0, 0, Math.PI * 2);
+  ctx.fill();
+  // Eyes
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.ellipse(-8, -2, 7, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(8, -2, 7, 8, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#1a1008';
+  ctx.beginPath();
+  ctx.arc(-6, -1, 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(10, -1, 5, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.arc(-4, -3, 2, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(12, -3, 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.restore();
+}
+
+// ============================================================
+// LEADERBOARD DRAWING HELPER
+// ============================================================
+function drawLeaderboard(startY, compact) {
+  const lbX = W / 2;
+  const rowH = compact ? 22 : 26;
+  const titleSize = compact ? 14 : 16;
+  const rowSize = compact ? 13 : 15;
+
+  // Title
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = 'bold ' + titleSize + 'px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('WORLD LEADERBOARD', lbX, startY);
+
+  let y = startY + rowH + 4;
+
+  if (leaderboardData.length === 0) {
+    ctx.fillStyle = '#555';
+    ctx.font = rowSize + 'px Arial';
+    ctx.fillText(leaderboardLoading ? 'Loading...' : 'No scores yet', lbX, y);
+    return y + rowH;
+  }
+
+  // Column headers
+  ctx.fillStyle = '#666';
+  ctx.font = 'bold ' + (rowSize - 1) + 'px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('#', lbX - 120, y);
+  ctx.fillText('PLAYER', lbX - 100, y);
+  ctx.textAlign = 'right';
+  ctx.fillText('SCORE', lbX + 130, y);
+  y += rowH;
+
+  for (let i = 0; i < leaderboardData.length && i < 10; i++) {
+    const entry = leaderboardData[i];
+    const isMe = entry.name === playerName;
+
+    // Highlight current player's entries
+    if (isMe) {
+      ctx.fillStyle = 'rgba(251, 191, 36, 0.1)';
+      roundRect(ctx, lbX - 130, y - rowH + 6, 260, rowH, 4);
+      ctx.fill();
+    }
+
+    // Rank
+    ctx.textAlign = 'left';
+    if (i === 0) ctx.fillStyle = '#fbbf24';      // gold
+    else if (i === 1) ctx.fillStyle = '#c0c0c0';  // silver
+    else if (i === 2) ctx.fillStyle = '#cd7f32';   // bronze
+    else ctx.fillStyle = isMe ? '#fbbf24' : '#888';
+
+    ctx.font = 'bold ' + rowSize + 'px Arial';
+    ctx.fillText((i + 1) + '.', lbX - 120, y);
+
+    // Name
+    ctx.fillStyle = isMe ? '#fbbf24' : '#ccc';
+    ctx.font = (isMe ? 'bold ' : '') + rowSize + 'px Arial';
+    const name = entry.name.length > 12 ? entry.name.substring(0, 12) + '..' : entry.name;
+    ctx.fillText(name, lbX - 100, y);
+
+    // Score
+    ctx.textAlign = 'right';
+    ctx.fillStyle = isMe ? '#fbbf24' : '#aaa';
+    ctx.font = 'bold ' + rowSize + 'px Arial';
+    ctx.fillText(entry.score.toLocaleString(), lbX + 130, y);
+
+    y += rowH;
+  }
+
+  return y;
+}
+
+// ============================================================
 // MENU / GAME OVER SCREENS
 // ============================================================
 function drawMenuScreen() {
@@ -2099,75 +2489,51 @@ function drawMenuScreen() {
   // "PUNCH THE MONKEY" title with shadow
   ctx.fillStyle = '#000';
   ctx.font = 'bold 36px Arial';
-  ctx.fillText('PUNCH THE', W / 2 + 2, H * 0.18 + 2);
+  ctx.fillText('PUNCH THE', W / 2 + 2, H * 0.10 + 2);
   ctx.font = 'bold 44px Arial';
-  ctx.fillText('MONKEY', W / 2 + 2, H * 0.25 + 2);
+  ctx.fillText('MONKEY', W / 2 + 2, H * 0.16 + 2);
 
   ctx.fillStyle = COLORS.punchRed;
   ctx.font = 'bold 36px Arial';
-  ctx.fillText('PUNCH THE', W / 2, H * 0.18);
+  ctx.fillText('PUNCH THE', W / 2, H * 0.10);
   ctx.fillStyle = COLORS.monkey;
   ctx.font = 'bold 44px Arial';
-  ctx.fillText('MONKEY', W / 2, H * 0.25);
+  ctx.fillText('MONKEY', W / 2, H * 0.16);
 
   // Subtitle
   ctx.fillStyle = '#aaa';
   ctx.font = '18px Arial';
-  ctx.fillText('ROCK RUNNER', W / 2, H * 0.29);
+  ctx.fillText('ROCK RUNNER', W / 2, H * 0.195);
 
-  // Animated monkey preview - baby Punch holding his teddy
+  // Player name
+  ctx.fillStyle = '#888';
+  ctx.font = '13px Arial';
+  ctx.fillText('Playing as', W / 2, H * 0.235);
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = 'bold 16px Arial';
+  ctx.fillText(playerName, W / 2, H * 0.26);
+
+  // Animated monkey preview - smaller to fit leaderboard
   ctx.save();
-  ctx.translate(W / 2, H * 0.40);
-  const previewBob = Math.sin(Date.now() * 0.003) * 8;
+  ctx.translate(W / 2, H * 0.33);
+  const previewBob = Math.sin(Date.now() * 0.003) * 5;
   ctx.translate(0, previewBob);
+  ctx.scale(0.5, 0.5);
 
-  // Baby monkey face - big round head
+  // Baby monkey face
   ctx.fillStyle = COLORS.monkey;
   ctx.beginPath();
   ctx.arc(0, 0, 40, 0, Math.PI * 2);
   ctx.fill();
-
-  // Fluffy fur tufts on top
-  ctx.fillStyle = COLORS.monkeyDark;
-  ctx.beginPath();
-  ctx.moveTo(-12, -32);
-  ctx.lineTo(-8, -42);
-  ctx.lineTo(-2, -34);
-  ctx.lineTo(4, -44);
-  ctx.lineTo(10, -34);
-  ctx.lineTo(14, -40);
-  ctx.lineTo(16, -30);
-  ctx.closePath();
-  ctx.fill();
-
-  // Face area - peach/pink
   ctx.fillStyle = COLORS.monkeyFace;
   ctx.beginPath();
   ctx.ellipse(0, 6, 28, 22, 0, 0, Math.PI * 2);
   ctx.fill();
-
   ctx.fillStyle = COLORS.monkeyFaceLight;
   ctx.beginPath();
   ctx.ellipse(0, 8, 20, 15, 0, 0, Math.PI * 2);
   ctx.fill();
-
-  // Ears
-  ctx.fillStyle = COLORS.monkey;
-  ctx.beginPath();
-  ctx.arc(-38, -2, 14, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(38, -2, 14, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = COLORS.monkeyEar;
-  ctx.beginPath();
-  ctx.arc(-38, -2, 9, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(38, -2, 9, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Big dark eyes
+  // Eyes
   ctx.fillStyle = '#fff';
   ctx.beginPath();
   ctx.ellipse(-12, -4, 11, 12, 0, 0, Math.PI * 2);
@@ -2175,7 +2541,6 @@ function drawMenuScreen() {
   ctx.beginPath();
   ctx.ellipse(12, -4, 11, 12, 0, 0, Math.PI * 2);
   ctx.fill();
-
   ctx.fillStyle = '#1a1008';
   ctx.beginPath();
   ctx.arc(-10, -3, 8, 0, Math.PI * 2);
@@ -2183,8 +2548,6 @@ function drawMenuScreen() {
   ctx.beginPath();
   ctx.arc(14, -3, 8, 0, Math.PI * 2);
   ctx.fill();
-
-  // Big eye shines
   ctx.fillStyle = '#fff';
   ctx.beginPath();
   ctx.arc(-7, -7, 3.5, 0, Math.PI * 2);
@@ -2192,122 +2555,20 @@ function drawMenuScreen() {
   ctx.beginPath();
   ctx.arc(17, -7, 3.5, 0, Math.PI * 2);
   ctx.fill();
-  ctx.beginPath();
-  ctx.arc(-12, 1, 1.5, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(12, 1, 1.5, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Nose
+  // Nose + mouth
   ctx.fillStyle = COLORS.monkeyDark;
   ctx.beginPath();
   ctx.ellipse(0, 8, 4, 3, 0, 0, Math.PI * 2);
   ctx.fill();
-
-  // Mouth - little open worried mouth
   ctx.fillStyle = '#8a5a4a';
   ctx.beginPath();
   ctx.ellipse(0, 14, 5, 3.5, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = '#6a3a2a';
-  ctx.beginPath();
-  ctx.ellipse(0, 14, 3.5, 2, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Monkey plushie held against body (below the face)
-  const teddyX = 0;
-  const teddyY = 45;
-
-  // Monkey arms wrapping around plushie
-  ctx.fillStyle = COLORS.monkey;
-  ctx.beginPath();
-  ctx.ellipse(-20, 35, 8, 16, 0.4, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.ellipse(20, 35, 8, 16, -0.4, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Plushie body (orange-red monkey)
-  ctx.fillStyle = '#E85530';
-  ctx.beginPath();
-  ctx.ellipse(teddyX, teddyY, 16, 20, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Plushie belly
-  ctx.fillStyle = '#F5A070';
-  ctx.beginPath();
-  ctx.ellipse(teddyX, teddyY + 2, 10, 13, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Plushie head
-  ctx.fillStyle = '#E85530';
-  ctx.beginPath();
-  ctx.arc(teddyX, teddyY - 18, 12, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Plushie ears (big round monkey ears)
-  ctx.beginPath();
-  ctx.arc(teddyX - 11, teddyY - 24, 5, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(teddyX + 11, teddyY - 24, 5, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#F5A070';
-  ctx.beginPath();
-  ctx.arc(teddyX - 11, teddyY - 24, 3, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(teddyX + 11, teddyY - 24, 3, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Plushie face
-  ctx.fillStyle = '#F5A070';
-  ctx.beginPath();
-  ctx.ellipse(teddyX, teddyY - 15, 7, 5, 0, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Plushie eyes
-  ctx.fillStyle = '#1a1a1a';
-  ctx.beginPath();
-  ctx.arc(teddyX - 4, teddyY - 20, 2, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(teddyX + 4, teddyY - 20, 2, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Plushie nose
-  ctx.fillStyle = '#3a2a1a';
-  ctx.beginPath();
-  ctx.arc(teddyX, teddyY - 15, 1.5, 0, Math.PI * 2);
-  ctx.fill();
-
-  // Plushie tail
-  ctx.strokeStyle = '#E85530';
-  ctx.lineWidth = 2.5;
-  ctx.lineCap = 'round';
-  ctx.beginPath();
-  ctx.moveTo(teddyX + 14, teddyY);
-  ctx.bezierCurveTo(teddyX + 22, teddyY - 5, teddyX + 26, teddyY - 14, teddyX + 22, teddyY - 20);
-  ctx.stroke();
-
-  // Monkey hands gripping plushie
-  ctx.fillStyle = COLORS.monkeyDark;
-  ctx.beginPath();
-  ctx.arc(-14, teddyY - 5, 5, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(14, teddyY - 5, 5, 0, Math.PI * 2);
-  ctx.fill();
 
   ctx.restore();
 
-  // Instructions
-  ctx.fillStyle = '#ddd';
-  ctx.font = '16px Arial';
-  ctx.fillText('Swipe or Arrow Keys to Move', W / 2, H * 0.66);
-  ctx.fillText('Up / Swipe Up = Jump', W / 2, H * 0.69);
-  ctx.fillText('Down / Swipe Down = Roll', W / 2, H * 0.72);
+  // Leaderboard
+  drawLeaderboard(H * 0.42, false);
 
   // Start button
   const pulse = 1 + Math.sin(Date.now() * 0.005) * 0.05;
@@ -2315,7 +2576,6 @@ function drawMenuScreen() {
   ctx.translate(W / 2, H * 0.83);
   ctx.scale(pulse, pulse);
 
-  // Button bg
   ctx.fillStyle = COLORS.punchRed;
   roundRect(ctx, -80, -22, 160, 44, 22);
   ctx.fill();
@@ -2332,6 +2592,7 @@ function drawMenuScreen() {
   if (highScore > 0) {
     ctx.fillStyle = '#FFD700';
     ctx.font = '14px Arial';
+    ctx.textAlign = 'center';
     ctx.fillText('HIGH SCORE: ' + highScore.toLocaleString(), W / 2, H * 0.92);
   }
 }
@@ -2345,14 +2606,15 @@ function drawGameOverScreen() {
   // Game Over text
   ctx.fillStyle = COLORS.punchRed;
   ctx.font = 'bold 40px Arial';
-  ctx.fillText('CAUGHT!', W / 2, H * 0.19);
+  ctx.fillText('CAUGHT!', W / 2, H * 0.08);
   ctx.fillStyle = '#ccc';
   ctx.font = '16px Arial';
-  ctx.fillText('The evil monkeys got Punch...', W / 2, H * 0.22);
+  ctx.fillText('The evil monkeys got Punch...', W / 2, H * 0.11);
 
-  // Knocked out baby monkey
+  // Knocked out baby monkey (smaller)
   ctx.save();
-  ctx.translate(W / 2, H * 0.29);
+  ctx.translate(W / 2, H * 0.165);
+  ctx.scale(0.7, 0.7);
 
   ctx.fillStyle = COLORS.monkey;
   ctx.beginPath();
@@ -2400,48 +2662,54 @@ function drawGameOverScreen() {
 
   ctx.restore();
 
-  // Stats
+  // Stats row - compact horizontal layout
+  const statsY = H * 0.24;
+
+  // Score
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 28px Arial';
-  ctx.fillText(score.toLocaleString(), W / 2, H * 0.42);
-  ctx.font = '14px Arial';
+  ctx.font = 'bold 24px Arial';
+  ctx.fillText(score.toLocaleString(), W / 2 - 120, statsY);
+  ctx.font = '11px Arial';
   ctx.fillStyle = '#aaa';
-  ctx.fillText('SCORE', W / 2, H * 0.45);
+  ctx.fillText('SCORE', W / 2 - 120, statsY + 16);
 
   // Distance
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 22px Arial';
-  ctx.fillText(Math.floor(distance) + 'm', W / 2, H * 0.50);
-  ctx.font = '14px Arial';
+  ctx.font = 'bold 24px Arial';
+  ctx.fillText(Math.floor(distance) + 'm', W / 2, statsY);
+  ctx.font = '11px Arial';
   ctx.fillStyle = '#aaa';
-  ctx.fillText('DISTANCE', W / 2, H * 0.52);
+  ctx.fillText('DISTANCE', W / 2, statsY + 16);
 
   // Plushies
   ctx.fillStyle = '#E85530';
-  ctx.font = 'bold 22px Arial';
-  ctx.fillText(plushiesCollected, W / 2, H * 0.57);
-  ctx.font = '14px Arial';
+  ctx.font = 'bold 24px Arial';
+  ctx.fillText(plushiesCollected, W / 2 + 120, statsY);
+  ctx.font = '11px Arial';
   ctx.fillStyle = '#aaa';
-  ctx.fillText('PLUSHIES', W / 2, H * 0.59);
+  ctx.fillText('PLUSHIES', W / 2 + 120, statsY + 16);
 
   // New high score?
   if (score >= highScore && score > 0) {
     ctx.fillStyle = '#FFD700';
-    ctx.font = 'bold 18px Arial';
+    ctx.font = 'bold 16px Arial';
     const hsFlash = Math.sin(Date.now() * 0.005) > 0;
     if (hsFlash) {
-      ctx.fillText('NEW HIGH SCORE!', W / 2, H * 0.65);
+      ctx.fillText('NEW HIGH SCORE!', W / 2, H * 0.32);
     }
   } else {
     ctx.fillStyle = '#888';
-    ctx.font = '14px Arial';
-    ctx.fillText('HIGH SCORE: ' + highScore.toLocaleString(), W / 2, H * 0.65);
+    ctx.font = '12px Arial';
+    ctx.fillText('HIGH SCORE: ' + highScore.toLocaleString(), W / 2, H * 0.32);
   }
+
+  // Leaderboard
+  drawLeaderboard(H * 0.37, true);
 
   // Retry button
   const pulse = 1 + Math.sin(Date.now() * 0.005) * 0.03;
   ctx.save();
-  ctx.translate(W / 2, H * 0.83);
+  ctx.translate(W / 2, H * 0.88);
   ctx.scale(pulse, pulse);
 
   ctx.fillStyle = COLORS.punchRed;
@@ -2638,4 +2906,5 @@ function gameLoop(timestamp) {
 }
 
 // Start!
+fetchLeaderboard();
 requestAnimationFrame(gameLoop);

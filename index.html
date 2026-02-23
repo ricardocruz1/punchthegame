@@ -622,6 +622,9 @@
   <div class="game-column">
     <div id="gameContainer">
       <canvas id="gameCanvas"></canvas>
+      <!-- Hidden input for mobile keyboard support during name entry -->
+      <input type="text" id="mobileNameInput" maxlength="15" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+        style="position:absolute;top:-9999px;left:-9999px;opacity:0;width:1px;height:1px;pointer-events:none;">
     </div>
   </div>
 
@@ -904,6 +907,7 @@ updateDonateGate();
 // Listen for high score updates from game.js
 window.addEventListener('highScoreUpdated', updateDonateGate);
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="game.js"></script>
 </body>
 </html>
