@@ -1306,8 +1306,8 @@ window.addEventListener('highScoreUpdated', updateDonateGate);
   // GLOBAL STATS BATCHED CYCLING (grid pages, roll-up transition)
   // ============================================================
   var BATCH_SIZE = 5; // 4 tiles (2x2) + 1 full-width
-  var BATCH_DISPLAY_MS = 5000; // show each batch for 5s
-  var BATCH_TRANSITION_MS = 400; // roll animation duration
+  var BATCH_DISPLAY_MS = 10000; // show each batch for 10s
+  var BATCH_TRANSITION_MS = 800; // roll animation duration
   var statEntries = [];
   var statBatches = []; // array of arrays, each up to BATCH_SIZE
   var batchStartTime = 0;

@@ -58,8 +58,8 @@ const GLOBAL_STATS_CACHE_MS = 60000; // refresh every 60s
 let statIndex = 0;
 let statTimer = 0;
 let statTransition = 0; // 0 = showing, >0 = animating out/in
-const STAT_DISPLAY_MS = 3500; // show each stat for 3.5s
-const STAT_TRANSITION_MS = 400; // roll animation duration
+const STAT_DISPLAY_MS = 7000; // show each stat for 7s
+const STAT_TRANSITION_MS = 800; // roll animation duration
 
 function getStatEntries() {
   if (!globalStats) return [];
