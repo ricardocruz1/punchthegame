@@ -99,34 +99,34 @@ const SPEED_INCREMENT = 0.02;
 
 // Colors
 const COLORS = {
-  sky: ['#87CEEB', '#5BA3D9', '#2E86AB'],
-  ground: '#8B7355',
-  groundDark: '#6B5340',
-  rock: '#696969',
-  rockLight: '#888888',
-  rockDark: '#4a4a4a',
-  jungle: '#2d5a1e',
-  jungleDark: '#1a3a10',
-  tree: '#3a2a1a',
-  leaves: '#2d8a2d',
+  sky: ['#43B8E8', '#2E9AD6', '#1A6FB5'],
+  ground: '#D4883A',
+  groundDark: '#A8652A',
+  rock: '#5C6B7A',
+  rockLight: '#7A8B9A',
+  rockDark: '#3D4D5C',
+  jungle: '#1B7A2C',
+  jungleDark: '#0F5518',
+  tree: '#4A3020',
+  leaves: '#3CC74E',
   // Plushie = orange-red monkey plushie
-  plushie: '#E85530',
-  plushieLight: '#F07050',
-  plushieDark: '#B53A1A',
-  plushieBelly: '#F5A070',
+  plushie: '#FF6B35',
+  plushieLight: '#FF8A5C',
+  plushieDark: '#CC4A15',
+  plushieBelly: '#FFB888',
   plushieNose: '#3a2a1a',
-  // Punch = baby monkey: grayish-tan fur, pink face
-  monkey: '#A0917A',
-  monkeyLight: '#B8ADA0',
-  monkeyDark: '#7A6E60',
-  monkeyFace: '#E8C5A8',
-  monkeyFaceLight: '#F0D5BE',
-  monkeyEar: '#D4A882',
-  punchRed: '#FF4444',
-  // Enemy monkeys: darker, bigger, meaner
-  enemyMonkey: '#6B4226',
-  enemyMonkeyDark: '#3D2515',
-  enemyMonkeyFace: '#B87A4A',
+  // Punch = baby monkey: warm golden-tan fur, bright pink face
+  monkey: '#C4A87A',
+  monkeyLight: '#D8C4A0',
+  monkeyDark: '#8A7A5E',
+  monkeyFace: '#FFD8B8',
+  monkeyFaceLight: '#FFE8D0',
+  monkeyEar: '#E8B890',
+  punchRed: '#FF3B3B',
+  // Enemy monkeys: darker, angrier red-brown
+  enemyMonkey: '#8B3A1A',
+  enemyMonkeyDark: '#4D1E0A',
+  enemyMonkeyFace: '#D08050',
 };
 
 // ============================================================
