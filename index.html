@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Punch the Monkey - Rock Runner</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0f0f1a;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    color: #d4d4d8;
+    height: 100vh;
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  /* ---------- MAIN LAYOUT ---------- */
+  .page-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    gap: 24px;
+    padding: 16px;
+  }
+
+  /* Side panels - fill remaining space, scroll internally */
+  .panel {
+    flex: 1;
+    min-width: 0;
+    height: calc(100vh - 32px);
+    max-height: 900px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+    /* hide scrollbar but keep functionality */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.08) transparent;
+  }
+
+  .panel::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .panel::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .panel::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+  }
+
+  .panel-card {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16162a 100%);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 14px;
+  }
+
+  .panel-card:last-child {
+    margin-bottom: 0;
+  }
+
+  .panel-card h2 {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+
+  .panel-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #e4e4e7;
+  }
+
+  .panel-card p {
+    font-size: 15px;
+    line-height: 1.65;
+    color: #a1a1aa;
+    margin-bottom: 8px;
+  }
+
+  .panel-card p:last-of-type {
+    margin-bottom: 0;
+  }
+
+  /* ---------- LEFT PANEL ---------- */
+  .left-panel .panel-card:first-child h2 {
+    color: #fbbf24;
+  }
+
+  .highlight {
+    color: #fbbf24;
+    font-weight: 600;
+  }
+
+  .cta-line {
+    color: #c084fc;
+    font-weight: 600;
+    font-style: italic;
+  }
+
+  /* Controls */
+  .controls-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .control-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .key-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 32px;
+    padding: 0 8px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #e4e4e7;
+    white-space: nowrap;
+  }
+
+  .control-label {
+    font-size: 14px;
+    color: #a1a1aa;
+  }
+
+  .tips-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .tips-list li {
+    font-size: 14px;
+    color: #a1a1aa;
+    line-height: 1.55;
+    padding-left: 18px;
+    position: relative;
+    margin-bottom: 5px;
+  }
+
+  .tips-list li::before {
+    content: ">";
+    position: absolute;
+    left: 2px;
+    color: #fbbf24;
+    font-weight: 700;
+  }
+
+  /* ---------- GAME COLUMN ---------- */
+  .game-column {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #gameContainer {
+    position: relative;
+    /* Scale to fit viewport height minus padding */
+    height: calc(100vh - 32px);
+    aspect-ratio: 500 / 900;
+    max-width: 500px;
+    max-height: 900px;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow:
+      0 0 50px rgba(99, 102, 241, 0.1),
+      0 0 0 1px rgba(255,255,255,0.06);
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ---------- RIGHT PANEL ---------- */
+  .right-panel .story-card h2 {
+    color: #f87171;
+  }
+
+  .right-panel .story-card p strong {
+    color: #e4e4e7;
+  }
+
+  .hashtag {
+    display: inline-block;
+    background: rgba(248, 113, 113, 0.12);
+    color: #f87171;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 4px 10px;
+    border-radius: 5px;
+    margin-top: 8px;
+  }
+
+  /* Donate card */
+  .donate-card {
+    background: linear-gradient(135deg, #1e1b2e 0%, #1a1a2e 100%);
+    border: 1px solid rgba(248, 113, 113, 0.2);
+    text-align: center;
+  }
+
+  .donate-card h3 {
+    color: #fbbf24;
+    font-size: 18px;
+    margin-bottom: 5px;
+  }
+
+  .donate-card p {
+    font-size: 14px;
+    color: #a1a1aa;
+    margin-bottom: 12px;
+  }
+
+  .donate-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, #FF5E5B, #e04e4b);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 18px;
+    padding: 12px 32px;
+    border-radius: 10px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 20px rgba(255, 94, 91, 0.3);
+  }
+
+  .donate-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 28px rgba(255, 94, 91, 0.45);
+  }
+
+  .split-bar {
+    display: flex;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 12px;
+    margin-bottom: 4px;
+  }
+
+  .split-bar .portion-punch {
+    flex: 75;
+    background: #f87171;
+  }
+
+  .split-bar .portion-dev {
+    flex: 25;
+    background: #3f3f46;
+  }
+
+  .split-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #71717a;
+  }
+
+  .split-labels span:first-child {
+    color: #f87171;
+    font-weight: 600;
+  }
+
+  .split-note {
+    display: block;
+    font-size: 13px;
+    color: #52525b;
+    margin-top: 8px;
+    font-weight: 500;
+  }
+
+  /* ---------- DONATE GATE SYSTEM ---------- */
+  .donate-gate {
+    margin: 14px 0;
+  }
+
+  /* Locked state: show lock UI, hide button */
+  .donate-gate .donate-btn-unlocked {
+    display: none;
+  }
+
+  .donate-gate.unlocked .donate-locked {
+    display: none;
+  }
+
+  .donate-gate.unlocked .donate-btn-unlocked {
+    display: inline-block;
+  }
+
+  .donate-locked {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 16px 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px dashed rgba(255,255,255,0.12);
+    border-radius: 10px;
+  }
+
+  .lock-icon {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .lock-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fbbf24;
+  }
+
+  .lock-progress-wrap {
+    width: 100%;
+    max-width: 200px;
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 2px;
+  }
+
+  .lock-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    border-radius: 3px;
+    transition: width 0.6s ease;
+  }
+
+  .lock-sublabel {
+    font-size: 12px;
+    color: #71717a;
+    font-weight: 500;
+  }
+
+  /* Mobile bar locked state */
+  .mobile-bar-btn.btn-donate.locked {
+    background: #2a2a3e;
+    color: #71717a;
+    box-shadow: none;
+    pointer-events: none;
+  }
+
+  /* ---------- MOBILE OVERLAY SYSTEM ---------- */
+  .mobile-bar {
+    display: none;
+  }
+
+  .mobile-overlay {
+    display: none;
+  }
+
+  /* ---------- RESPONSIVE: NARROW DESKTOP ---------- */
+  @media (max-width: 1100px) {
+    .panel-card { padding: 18px; }
+    .panel-card h2 { font-size: 18px; }
+    .panel-card p { font-size: 14px; line-height: 1.6; }
+    .tips-list li { font-size: 13px; }
+    .control-label { font-size: 13px; }
+    .page-wrapper { gap: 16px; padding: 12px; }
+    .panel { height: calc(100vh - 24px); }
+    #gameContainer { height: calc(100vh - 24px); }
+  }
+
+  /* ---------- RESPONSIVE: TABLET ---------- */
+  @media (max-width: 860px) {
+    .panel { display: none; }
+    .page-wrapper {
+      padding: 0;
+      gap: 0;
+    }
+    .game-column {
+      width: 100%;
+      height: 100vh;
+    }
+    #gameContainer {
+      height: 100vh;
+      max-height: none;
+      border-radius: 0;
+      box-shadow: none;
+      margin: 0 auto;
+    }
+
+    /* Show mobile bottom bar */
+    .mobile-bar {
+      display: flex;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(15, 15, 26, 0.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding: 10px 16px;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .mobile-bar-btn {
+      flex: 1;
+      max-width: 180px;
+      text-align: center;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      transition: transform 0.1s;
+    }
+
+    .mobile-bar-btn:active {
+      transform: scale(0.96);
+    }
+
+    .btn-info {
+      background: rgba(255,255,255,0.08);
+      color: #e4e4e7;
+    }
+
+    .btn-donate {
+      background: linear-gradient(135deg, #FF5E5B, #e04e4b);
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(255, 94, 91, 0.3);
+    }
+
+    /* Mobile overlay panels */
+    .mobile-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(15, 15, 26, 0.97);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      overflow-y: auto;
+      padding: 20px 20px 80px;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .mobile-overlay.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .mobile-overlay .panel-card {
+      max-width: 480px;
+      margin: 0 auto 12px;
+    }
+
+    .overlay-close {
+      display: block;
+      max-width: 480px;
+      margin: 0 auto 16px;
+      text-align: right;
+    }
+
+    .overlay-close button {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #e4e4e7;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+
+  <!-- ======== LEFT PANEL ======== -->
+  <div class="panel left-panel">
+
+    <div class="panel-card">
+      <h2>Punch the Monkey: Rock Runner</h2>
+      <p>
+        Meet <span class="highlight">Punch</span> &mdash; a tiny, brave baby monkey on the run
+        from a gang of very grumpy adults who clearly skipped anger management class.
+      </p>
+      <p>
+        Your job? Help this little guy dodge rocks, leap over boulders, duck under
+        fallen logs, and collect his beloved orange plushies along the way.
+        The longer you survive, the faster it gets.
+        Classic endless runner chaos &mdash; except this time, the stakes are adorable.
+      </p>
+      <p class="cta-line">
+        Every game you play helps spread the word about the real Punch.
+        So go on &mdash; give it a run. He's counting on you.
+      </p>
+    </div>
+
+    <div class="panel-card">
+      <h3>Controls</h3>
+      <div class="controls-grid">
+        <div class="control-row">
+          <span class="key-badge">&larr;</span>
+          <span class="key-badge">A</span>
+          <span class="control-label">Move left</span>
+        </div>
+        <div class="control-row">
+          <span class="key-badge">&rarr;</span>
+          <span class="key-badge">D</span>
+          <span class="control-label">Move right</span>
+        </div>
+        <div class="control-row">
+          <span class="key-badge">&uarr;</span>
+          <span class="key-badge">W</span>
+          <span class="control-label">Jump over rocks</span>
+        </div>
+        <div class="control-row">
+          <span class="key-badge">&darr;</span>
+          <span class="key-badge">S</span>
+          <span class="control-label">Roll under logs</span>
+        </div>
+        <div class="control-row">
+          <span class="key-badge">Swipe</span>
+          <span class="control-label">Touch controls on mobile</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-card">
+      <h3>Tips for Survival</h3>
+      <ul class="tips-list">
+        <li>Switch lanes early &mdash; don't panic-swerve into a boulder</li>
+        <li>Jump timing is forgiving, just don't wait until the last pixel</li>
+        <li>Grab the orange plushies for bonus points (Punch loves those)</li>
+        <li>After one hit you get a second chance &mdash; but the angry monkeys start chasing</li>
+        <li>Get hit twice and... well, they catch you. It's not pretty.</li>
+        <li>Look out for magnets and multiplier powerups!</li>
+      </ul>
+    </div>
+
+  </div>
+
+  <!-- ======== GAME ======== -->
+  <div class="game-column">
+    <div id="gameContainer">
+      <canvas id="gameCanvas"></canvas>
+    </div>
+  </div>
+
+  <!-- ======== RIGHT PANEL ======== -->
+  <div class="panel right-panel">
+
+    <div class="panel-card story-card">
+      <h2>The Story of Punch</h2>
+      <p>
+        <strong>Panchi-kun</strong> (that's his real name) was born on July 25, 2025,
+        at the Ichikawa City Zoo in Japan. He's a baby Japanese macaque &mdash; a snow monkey &mdash;
+        and from day one, life dealt him a rough hand. His mother showed no interest in raising him,
+        and by the very next day, zookeepers stepped in with baby bottles and round-the-clock care.
+      </p>
+      <p>
+        When introduced to the other 60 monkeys on Monkey Mountain, he struggled.
+        No mother meant no protection, no social cues, no warmth to cling to. He showed signs
+        of anxiety and isolation &mdash; a tiny baby in a world of adults who didn't always welcome him.
+      </p>
+      <p>
+        Then the zookeepers gave him an <strong>IKEA Djungelskog orangutan plushie</strong>
+        &mdash; a big, soft, orange stuffed animal. Punch latched on immediately, carried it
+        everywhere, clung to it like a surrogate mother, and slowly started coming out of his shell.
+        The internet named it <strong>"Oran-Mama."</strong>
+      </p>
+      <p>
+        In February 2026, the zoo shared his story online. It exploded.
+        <strong>#HangInTherePunch</strong> trended worldwide. IKEA visited the zoo and
+        donated 33 more stuffed toys. Huge lines formed outside. People everywhere
+        fell in love with this tiny, worried-looking baby hugging his plushie for dear life.
+      </p>
+      <p>
+        Despite everything, his keepers say he's <strong>"mentally strong."</strong>
+        He's outgoing, he's a fighter, and he's learning to navigate the troop on his own terms.
+        He just needed a little help &mdash; and a really good hug.
+      </p>
+      <span class="hashtag">#HangInTherePunch</span>
+    </div>
+
+    <div class="panel-card donate-card">
+      <h3>Help Punch (For Real)</h3>
+      <p>
+        This game exists because Punch's story matters.
+        If it made you smile, laugh, or frantically mash your keyboard &mdash;
+        consider supporting animals like him.
+      </p>
+      <p>
+        75% of every donation goes to
+        <a href="https://www.worldanimalprotection.org" target="_blank" rel="noopener" style="color:#f87171;font-weight:600;text-decoration:underline;">World Animal Protection</a>
+        &mdash; we couldn't find a charity aimed directly at Punch,
+        so we picked the next best thing.
+      </p>
+      <div class="donate-gate" id="donateGateDesktop">
+        <div class="donate-locked">
+          <span class="lock-icon">&#x1F512;</span>
+          <span class="lock-label">Score 10,000 to unlock donations</span>
+          <div class="lock-progress-wrap">
+            <div class="lock-progress-bar" id="lockBarDesktop"></div>
+          </div>
+          <span class="lock-sublabel" id="lockSubDesktop">Your best: 0 / 10,000</span>
+        </div>
+        <a class="donate-btn donate-btn-unlocked" href="https://ko-fi.com/punchthegame" target="_blank" rel="noopener">
+          Support Punch
+        </a>
+      </div>
+      <div class="split-bar">
+        <div class="portion-punch"></div>
+        <div class="portion-dev"></div>
+      </div>
+      <div class="split-labels">
+        <span>75% to World Animal Protection</span>
+        <span>25% game dev</span>
+      </div>
+      <span class="split-note">Full transparency &mdash; every donation tracked and reported.</span>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ======== MOBILE BOTTOM BAR ======== -->
+<div class="mobile-bar">
+  <button class="mobile-bar-btn btn-info" onclick="toggleOverlay('info-overlay')">How to Play</button>
+  <button class="mobile-bar-btn btn-info" onclick="toggleOverlay('story-overlay')">Punch's Story</button>
+  <a class="mobile-bar-btn btn-donate" id="mobileBarDonate" href="https://ko-fi.com/punchthegame" target="_blank" rel="noopener">Donate</a>
+</div>
+
+<!-- ======== MOBILE INFO OVERLAY ======== -->
+<div class="mobile-overlay" id="info-overlay">
+  <div class="overlay-close"><button onclick="toggleOverlay('info-overlay')">Close</button></div>
+
+  <div class="panel-card">
+    <h2 style="color:#fbbf24">Punch the Monkey: Rock Runner</h2>
+    <p>
+      Meet <span class="highlight">Punch</span> &mdash; a tiny, brave baby monkey on the run
+      from a gang of very grumpy adults who clearly skipped anger management class.
+    </p>
+    <p>
+      Help this little guy dodge rocks, leap over boulders, duck under fallen logs,
+      and collect his beloved orange plushies. The longer you survive, the faster it gets.
+    </p>
+    <p class="cta-line">
+      Every game you play helps spread the word about the real Punch.
+    </p>
+  </div>
+
+  <div class="panel-card">
+    <h3>Controls</h3>
+    <div class="controls-grid">
+      <div class="control-row">
+        <span class="key-badge">Swipe L/R</span>
+        <span class="control-label">Switch lanes</span>
+      </div>
+      <div class="control-row">
+        <span class="key-badge">Swipe Up</span>
+        <span class="control-label">Jump over rocks</span>
+      </div>
+      <div class="control-row">
+        <span class="key-badge">Swipe Down</span>
+        <span class="control-label">Roll under logs</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-card">
+    <h3>Tips</h3>
+    <ul class="tips-list">
+      <li>Switch lanes early &mdash; don't panic-swerve into a boulder</li>
+      <li>Grab plushies for bonus points</li>
+      <li>One hit = second chance, but angry monkeys start chasing</li>
+      <li>Two hits = game over. Run fast.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ======== MOBILE STORY OVERLAY ======== -->
+<div class="mobile-overlay" id="story-overlay">
+  <div class="overlay-close"><button onclick="toggleOverlay('story-overlay')">Close</button></div>
+
+  <div class="panel-card story-card">
+    <h2 style="color:#f87171">The Story of Punch</h2>
+    <p>
+      <strong>Panchi-kun</strong> was born on July 25, 2025 at the Ichikawa City Zoo in Japan.
+      His mother showed no interest in raising him. Zookeepers stepped in with baby bottles
+      and round-the-clock care.
+    </p>
+    <p>
+      Among the 60 monkeys on Monkey Mountain, he struggled &mdash; no protection, no social cues.
+      Then they gave him an <strong>IKEA orangutan plushie</strong>. He latched on immediately,
+      carrying it everywhere like a surrogate mother. The internet named it <strong>"Oran-Mama."</strong>
+    </p>
+    <p>
+      In February 2026, his story went viral. <strong>#HangInTherePunch</strong> trended worldwide.
+      IKEA donated 33 more stuffed toys. His keepers say he's <strong>"mentally strong"</strong>
+      &mdash; a fighter learning to navigate the world on his own terms.
+    </p>
+    <span class="hashtag">#HangInTherePunch</span>
+  </div>
+
+  <div class="panel-card donate-card">
+    <h3>Help Punch (For Real)</h3>
+    <p>75% of every donation goes to
+      <a href="https://www.worldanimalprotection.org" target="_blank" rel="noopener" style="color:#f87171;font-weight:600;text-decoration:underline;">World Animal Protection</a>.
+    </p>
+    <div class="donate-gate" id="donateGateMobile">
+      <div class="donate-locked">
+        <span class="lock-icon">&#x1F512;</span>
+        <span class="lock-label">Score 10,000 to unlock donations</span>
+        <div class="lock-progress-wrap">
+          <div class="lock-progress-bar" id="lockBarMobile"></div>
+        </div>
+        <span class="lock-sublabel" id="lockSubMobile">Your best: 0 / 10,000</span>
+      </div>
+      <a class="donate-btn donate-btn-unlocked" href="https://ko-fi.com/punchthegame" target="_blank" rel="noopener">
+        Support Punch
+      </a>
+    </div>
+    <div class="split-bar">
+      <div class="portion-punch"></div>
+      <div class="portion-dev"></div>
+    </div>
+    <div class="split-labels">
+      <span>75% to World Animal Protection</span>
+      <span>25% game dev</span>
+    </div>
+  </div>
+</div>
+
+<script>
+function toggleOverlay(id) {
+  const el = document.getElementById(id);
+  // Close all overlays first
+  document.querySelectorAll('.mobile-overlay').forEach(o => {
+    if (o.id !== id) o.classList.remove('active');
+  });
+  el.classList.toggle('active');
+}
+
+// ---------- DONATE GATE ----------
+const DONATE_UNLOCK_SCORE = 10000;
+
+function updateDonateGate() {
+  const hs = parseInt(localStorage.getItem('punchMonkeyHighScore') || '0');
+  const unlocked = hs >= DONATE_UNLOCK_SCORE;
+  const pct = Math.min(100, Math.round((hs / DONATE_UNLOCK_SCORE) * 100));
+
+  // Desktop gate
+  const gd = document.getElementById('donateGateDesktop');
+  if (gd) {
+    gd.classList.toggle('unlocked', unlocked);
+    const bar = document.getElementById('lockBarDesktop');
+    const sub = document.getElementById('lockSubDesktop');
+    if (bar) bar.style.width = pct + '%';
+    if (sub) sub.textContent = 'Your best: ' + hs.toLocaleString() + ' / ' + DONATE_UNLOCK_SCORE.toLocaleString();
+  }
+
+  // Mobile overlay gate
+  const gm = document.getElementById('donateGateMobile');
+  if (gm) {
+    gm.classList.toggle('unlocked', unlocked);
+    const bar = document.getElementById('lockBarMobile');
+    const sub = document.getElementById('lockSubMobile');
+    if (bar) bar.style.width = pct + '%';
+    if (sub) sub.textContent = 'Your best: ' + hs.toLocaleString() + ' / ' + DONATE_UNLOCK_SCORE.toLocaleString();
+  }
+
+  // Mobile bottom bar donate button
+  const mbd = document.getElementById('mobileBarDonate');
+  if (mbd) {
+    if (unlocked) {
+      mbd.classList.remove('locked');
+      mbd.textContent = 'Donate';
+    } else {
+      mbd.classList.add('locked');
+      mbd.textContent = 'Score 10k to Donate';
+    }
+  }
+}
+
+// Run on load
+updateDonateGate();
+
+// Listen for high score updates from game.js
+window.addEventListener('highScoreUpdated', updateDonateGate);
+</script>
+<script src="game.js"></script>
+</body>
+</html>
