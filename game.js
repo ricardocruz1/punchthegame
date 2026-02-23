@@ -310,6 +310,12 @@ function startGame() {
   groundStripes = [];
   chaserMonkeys = [];
 
+  // Reset sound tracking state
+  lastPlushieCount = 0;
+  lastLane = 1;
+  lastHits = 0;
+  wasAlive = true;
+
   // Initialize ground stripes
   for (let i = 0; i < 20; i++) {
     groundStripes.push({ z: i * 50 });
