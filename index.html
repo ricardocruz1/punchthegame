@@ -377,6 +377,31 @@
     margin-bottom: 10px;
   }
 
+  /* ---------- CONTROLS + STATS SIDE-BY-SIDE ---------- */
+  .controls-stats-row {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .controls-stats-row .panel-card {
+    flex: 1;
+    min-width: 0;
+    margin-bottom: 0;
+  }
+  /* Tighter stat tiles in side-by-side layout */
+  .controls-stats-row .stat-item {
+    padding: 7px 6px;
+  }
+  .controls-stats-row .stat-value {
+    font-size: 16px;
+  }
+  .controls-stats-row .stat-label {
+    font-size: 10px;
+  }
+  .controls-stats-row .global-stats {
+    gap: 6px;
+  }
+
   /* ---------- GAME COLUMN ---------- */
   .game-column {
     flex-shrink: 0;
@@ -600,6 +625,11 @@
     .page-wrapper { gap: 16px; padding: 12px; }
     .panel { height: calc(100vh - 24px); }
     #gameContainer { height: calc(100vh - 24px); }
+    .controls-stats-row { gap: 10px; }
+    .controls-stats-row .stat-value { font-size: 14px; }
+    .controls-stats-row .stat-label { font-size: 9px; }
+    .controls-stats-row .stat-item { padding: 5px 4px; }
+    .controls-stats-row .global-stats { gap: 4px; }
   }
 
   /* ---------- RESPONSIVE: TABLET ---------- */
@@ -788,40 +818,42 @@
       </p>
     </div>
 
-    <div class="panel-card">
-      <h3>Controls</h3>
-      <div class="controls-grid">
-        <div class="control-row">
-          <span class="key-badge">&larr;</span>
-          <span class="key-badge">A</span>
-          <span class="control-label">Move left</span>
-        </div>
-        <div class="control-row">
-          <span class="key-badge">&rarr;</span>
-          <span class="key-badge">D</span>
-          <span class="control-label">Move right</span>
-        </div>
-        <div class="control-row">
-          <span class="key-badge">&uarr;</span>
-          <span class="key-badge">W</span>
-          <span class="control-label">Jump</span>
-        </div>
-        <div class="control-row">
-          <span class="key-badge">&darr;</span>
-          <span class="key-badge">S</span>
-          <span class="control-label">Roll</span>
-        </div>
-        <div class="control-row">
-          <span class="key-badge">R</span>
-          <span class="control-label">Restart</span>
+    <div class="controls-stats-row">
+      <div class="panel-card">
+        <h3>Controls</h3>
+        <div class="controls-grid">
+          <div class="control-row">
+            <span class="key-badge">&larr;</span>
+            <span class="key-badge">A</span>
+            <span class="control-label">Move left</span>
+          </div>
+          <div class="control-row">
+            <span class="key-badge">&rarr;</span>
+            <span class="key-badge">D</span>
+            <span class="control-label">Move right</span>
+          </div>
+          <div class="control-row">
+            <span class="key-badge">&uarr;</span>
+            <span class="key-badge">W</span>
+            <span class="control-label">Jump</span>
+          </div>
+          <div class="control-row">
+            <span class="key-badge">&darr;</span>
+            <span class="key-badge">S</span>
+            <span class="control-label">Roll</span>
+          </div>
+          <div class="control-row">
+            <span class="key-badge">R</span>
+            <span class="control-label">Restart</span>
+          </div>
         </div>
       </div>
-    </div>
 
-    <div class="panel-card stats-card">
-      <h3>Community</h3>
-      <div id="panelGlobalStats" class="global-stats">
-        <div class="stats-loading">Loading...</div>
+      <div class="panel-card stats-card">
+        <h3>Community</h3>
+        <div id="panelGlobalStats" class="global-stats">
+          <div class="stats-loading">Loading...</div>
+        </div>
       </div>
     </div>
 
