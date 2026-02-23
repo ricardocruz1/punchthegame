@@ -1,5 +1,5 @@
 // ============================================================
-// PUNCH THE MONKEY - ROCK RUNNER
+// PUNCH, THE MONKEY - ROCK RUNNER
 // A Subway Surfers-style endless runner
 // ============================================================
 
@@ -44,7 +44,7 @@ async function fetchLeaderboard() {
   try {
     const { data, error } = await supabaseClient
       .from('leaderboard')
-      .select('name, score')
+      .select('name, score, created_at')
       .order('score', { ascending: false })
       .limit(10);
 
@@ -1592,7 +1592,7 @@ function drawPlayer() {
     ctx.arc(8, -5, 8, 0, Math.PI * 2);
     ctx.fill();
   } else {
-    // --- PUNCH THE BABY MONKEY ---
+    // --- PUNCH, THE BABY MONKEY ---
 
     // Shadow on ground
     ctx.fillStyle = 'rgba(0,0,0,0.18)';
@@ -2294,11 +2294,11 @@ function drawNameScreen() {
 
   // Title
   ctx.fillStyle = COLORS.punchRed;
-  ctx.font = 'bold 36px Arial';
-  ctx.fillText('PUNCH THE', W / 2, H * 0.15);
-  ctx.fillStyle = COLORS.monkey;
   ctx.font = 'bold 44px Arial';
-  ctx.fillText('MONKEY', W / 2, H * 0.22);
+  ctx.fillText('PUNCH,', W / 2, H * 0.15);
+  ctx.fillStyle = COLORS.monkey;
+  ctx.font = 'bold 40px Arial';
+  ctx.fillText('THE MONKEY', W / 2, H * 0.22);
   ctx.fillStyle = '#aaa';
   ctx.font = '18px Arial';
   ctx.fillText('ROCK RUNNER', W / 2, H * 0.26);
@@ -2450,9 +2450,13 @@ function drawLeaderboard(startY, compact) {
   ctx.textAlign = 'left';
   ctx.fillText('#', lbX - 120, y);
   ctx.fillText('PLAYER', lbX - 100, y);
+  ctx.textAlign = 'center';
+  ctx.fillText('DATE', lbX + 50, y);
   ctx.textAlign = 'right';
   ctx.fillText('SCORE', lbX + 130, y);
   y += rowH;
+
+  var shortMonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
   for (let i = 0; i < leaderboardData.length && i < 10; i++) {
     const entry = leaderboardData[i];
@@ -2478,8 +2482,17 @@ function drawLeaderboard(startY, compact) {
     // Name
     ctx.fillStyle = isMe ? '#fbbf24' : '#ccc';
     ctx.font = (isMe ? 'bold ' : '') + rowSize + 'px Arial';
-    const name = entry.name.length > 12 ? entry.name.substring(0, 12) + '..' : entry.name;
+    const name = entry.name.length > 10 ? entry.name.substring(0, 10) + '..' : entry.name;
     ctx.fillText(name, lbX - 100, y);
+
+    // Date
+    ctx.textAlign = 'center';
+    ctx.fillStyle = isMe ? 'rgba(251, 191, 36, 0.6)' : '#666';
+    ctx.font = (compact ? 10 : 11) + 'px Arial';
+    if (entry.created_at) {
+      var d = new Date(entry.created_at);
+      ctx.fillText(shortMonths[d.getMonth()] + ' ' + d.getDate(), lbX + 50, y);
+    }
 
     // Score
     ctx.textAlign = 'right';
@@ -2504,19 +2517,19 @@ function drawMenuScreen() {
   // Title
   ctx.textAlign = 'center';
 
-  // "PUNCH THE MONKEY" title with shadow
+  // "PUNCH, THE MONKEY" title with shadow
   ctx.fillStyle = '#000';
-  ctx.font = 'bold 36px Arial';
-  ctx.fillText('PUNCH THE', W / 2 + 2, H * 0.10 + 2);
   ctx.font = 'bold 44px Arial';
-  ctx.fillText('MONKEY', W / 2 + 2, H * 0.16 + 2);
+  ctx.fillText('PUNCH,', W / 2 + 2, H * 0.10 + 2);
+  ctx.font = 'bold 40px Arial';
+  ctx.fillText('THE MONKEY', W / 2 + 2, H * 0.16 + 2);
 
   ctx.fillStyle = COLORS.punchRed;
-  ctx.font = 'bold 36px Arial';
-  ctx.fillText('PUNCH THE', W / 2, H * 0.10);
-  ctx.fillStyle = COLORS.monkey;
   ctx.font = 'bold 44px Arial';
-  ctx.fillText('MONKEY', W / 2, H * 0.16);
+  ctx.fillText('PUNCH,', W / 2, H * 0.10);
+  ctx.fillStyle = COLORS.monkey;
+  ctx.font = 'bold 40px Arial';
+  ctx.fillText('THE MONKEY', W / 2, H * 0.16);
 
   // Subtitle
   ctx.fillStyle = '#aaa';
