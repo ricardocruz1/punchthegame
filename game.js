@@ -911,20 +911,24 @@ function update(dt) {
       p.x = p.obstacleRef.x;
       p.y = p.obstacleRef.y - p.obstacleRef.height - 20;
     } else {
-      p.y += gameSpeed * f;
-    }
-    p.bobPhase += 0.05 * f;
-
-    // Magnet pull
-    if (player.magnetActive && !p.collected) {
-      const pullDx = player.x - p.x;
-      const pullDy = player.y - player.height / 2 - p.y;
-      const pullDist = Math.sqrt(pullDx * pullDx + pullDy * pullDy);
-      if (pullDist < 150) {
-        p.x += pullDx * 0.1 * f;
-        p.y += pullDy * 0.1 * f;
+      // Magnet pull — if active, override normal scroll for nearby plushies
+      if (player.magnetActive && !p.collected) {
+        const pullDx = player.x - p.x;
+        const pullDy = (player.y - player.height / 2) - p.y;
+        const pullDist = Math.sqrt(pullDx * pullDx + pullDy * pullDy);
+        if (pullDist < 220) {
+          // Stronger pull the closer the plushie gets (guarantees collection)
+          const strength = 0.12 + (1 - pullDist / 220) * 0.25;
+          p.x += pullDx * strength * f;
+          p.y += pullDy * strength * f;
+        } else {
+          p.y += gameSpeed * f;
+        }
+      } else {
+        p.y += gameSpeed * f;
       }
     }
+    p.bobPhase += 0.05 * f;
 
     // Collect
     if (!p.collected && player.alive) {
