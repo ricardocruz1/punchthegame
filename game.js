@@ -50,7 +50,7 @@ const LEADERBOARD_CACHE_MS = 30000; // refresh every 30s max
 // ============================================================
 // GLOBAL STATS STATE
 // ============================================================
-let globalStats = null; // { totalGames, uniquePlayers, totalDistance, totalPlushies, topScore }
+let globalStats = null; // all stats from get_global_stats RPC
 let globalStatsLastFetch = 0;
 const GLOBAL_STATS_CACHE_MS = 60000; // refresh every 60s
 
@@ -65,15 +65,52 @@ function getStatEntries() {
   if (!globalStats) return [];
   var s = globalStats;
   var entries = [];
+  // 1. Total games
   if (s.totalGames > 0) entries.push({ value: s.totalGames.toLocaleString(), label: 'games played worldwide' });
+  // 2. Unique players
   if (s.uniquePlayers > 0) entries.push({ value: s.uniquePlayers.toLocaleString(), label: 'monkeys joined the run' });
+  // 3. Total distance
   if (s.totalDistance > 0) {
     var km = s.totalDistance / 1000;
     var distStr = km >= 1 ? Math.floor(km).toLocaleString() + 'km' : Math.floor(s.totalDistance).toLocaleString() + 'm';
     entries.push({ value: distStr, label: 'run by all players combined' });
   }
+  // 4. Total plushies
   if (s.totalPlushies > 0) entries.push({ value: s.totalPlushies.toLocaleString(), label: 'plushies rescued so far' });
+  // 5. All-time highest score
   if (s.topScore > 0) entries.push({ value: s.topScore.toLocaleString(), label: 'all-time highest score' });
+  // 6. Average score
+  if (s.avgScore > 0) entries.push({ value: Math.round(s.avgScore).toLocaleString(), label: 'average score per game' });
+  // 7. Median score
+  if (s.medianScore > 0) entries.push({ value: Math.round(s.medianScore).toLocaleString(), label: 'median score — are you above?' });
+  // 8. Games played today
+  if (s.gamesToday > 0) entries.push({ value: s.gamesToday.toLocaleString(), label: 'games played today' });
+  // 9. Longest single run
+  if (s.maxDistance > 0) {
+    var mkm = s.maxDistance / 1000;
+    var mdStr = mkm >= 1 ? mkm.toFixed(1) + 'km' : Math.floor(s.maxDistance).toLocaleString() + 'm';
+    entries.push({ value: mdStr, label: 'longest single run' });
+  }
+  // 10. Most plushies in one game
+  if (s.maxPlushies > 0) entries.push({ value: s.maxPlushies.toLocaleString(), label: 'most plushies in one game' });
+  // 11. Average distance per game
+  if (s.avgDistance > 0) {
+    var akm = s.avgDistance / 1000;
+    var adStr = akm >= 1 ? akm.toFixed(1) + 'km' : Math.round(s.avgDistance).toLocaleString() + 'm';
+    entries.push({ value: adStr, label: 'average distance per run' });
+  }
+  // 12. Average plushies per game
+  if (s.avgPlushies > 0) entries.push({ value: s.avgPlushies.toFixed(1), label: 'plushies rescued per game' });
+  // 13. Top scorer name
+  if (s.topScorer) entries.push({ value: s.topScorer, label: 'reigning champion' });
+  // 14. Newest player
+  if (s.newestPlayer) entries.push({ value: s.newestPlayer, label: 'newest monkey on the run' });
+  // 15. PC vs Mobile split
+  if (s.pcGames > 0 && s.mobileGames > 0) {
+    var total = s.pcGames + s.mobileGames;
+    var pcPct = Math.round((s.pcGames / total) * 100);
+    entries.push({ value: pcPct + '% PC / ' + (100 - pcPct) + '% Mobile', label: 'platform split' });
+  }
   return entries;
 }
 
@@ -89,7 +126,18 @@ async function fetchGlobalStats() {
         uniquePlayers: r.unique_players || 0,
         totalDistance: r.total_distance || 0,
         totalPlushies: r.total_plushies || 0,
-        topScore: r.top_score || 0
+        topScore: r.top_score || 0,
+        avgScore: r.avg_score || 0,
+        medianScore: r.median_score || 0,
+        gamesToday: r.games_today || 0,
+        maxDistance: r.max_distance || 0,
+        maxPlushies: r.max_plushies || 0,
+        avgDistance: r.avg_distance || 0,
+        avgPlushies: r.avg_plushies || 0,
+        topScorer: r.top_scorer || '',
+        newestPlayer: r.newest_player || '',
+        pcGames: r.pc_games || 0,
+        mobileGames: r.mobile_games || 0
       };
       globalStatsLastFetch = Date.now();
       // Also update HTML panels

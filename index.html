@@ -336,24 +336,26 @@
     border-bottom-color: #fbbf24;
   }
 
-  /* ---------- GLOBAL STATS ---------- */
+  /* ---------- GLOBAL STATS (cycling single stat) ---------- */
   .global-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    position: relative;
+    height: 48px;
+    overflow: hidden;
+    text-align: center;
   }
   .global-stats .stats-loading {
-    grid-column: 1 / -1;
     text-align: center;
     color: #666;
     font-size: 13px;
     padding: 12px 0;
   }
-  .stat-item {
-    background: rgba(255,255,255,0.03);
-    border-radius: 8px;
-    padding: 10px 12px;
+  .stat-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
     text-align: center;
+    transition: none; /* animated via JS */
   }
   .stat-value {
     font-size: 20px;
@@ -361,6 +363,7 @@
     color: #fbbf24;
     display: block;
     font-variant-numeric: tabular-nums;
+    line-height: 1.2;
   }
   .stat-label {
     font-size: 11px;
@@ -369,9 +372,6 @@
     letter-spacing: 0.5px;
     margin-top: 2px;
     display: block;
-  }
-  .stat-item.full-width {
-    grid-column: 1 / -1;
   }
   .stats-card h3 {
     margin-bottom: 10px;
@@ -388,10 +388,6 @@
     min-width: 0;
     margin-bottom: 0;
   }
-  /* Tighter stat tiles in side-by-side layout */
-  .controls-stats-row .stat-item {
-    padding: 7px 6px;
-  }
   .controls-stats-row .stat-value {
     font-size: 16px;
   }
@@ -399,7 +395,7 @@
     font-size: 10px;
   }
   .controls-stats-row .global-stats {
-    gap: 6px;
+    height: 42px;
   }
 
   /* ---------- GAME COLUMN ---------- */
@@ -628,8 +624,7 @@
     .controls-stats-row { gap: 10px; }
     .controls-stats-row .stat-value { font-size: 14px; }
     .controls-stats-row .stat-label { font-size: 9px; }
-    .controls-stats-row .stat-item { padding: 5px 4px; }
-    .controls-stats-row .global-stats { gap: 4px; }
+    .controls-stats-row .global-stats { height: 38px; }
   }
 
   /* ---------- RESPONSIVE: TABLET ---------- */
@@ -1294,25 +1289,109 @@ window.addEventListener('highScoreUpdated', updateDonateGate);
   setInterval(fetchAllLeaderboards, 60000);
 
   // ============================================================
-  // GLOBAL STATS RENDERING (panels)
+  // GLOBAL STATS CYCLING DISPLAY (matching canvas roll-up)
   // ============================================================
-  function renderStatsHTML(stats) {
-    if (!stats) return '<div class="stats-loading">Loading...</div>';
-    var km = stats.totalDistance / 1000;
-    var distStr = km >= 1 ? Math.floor(km).toLocaleString() + 'km' : Math.floor(stats.totalDistance).toLocaleString() + 'm';
-    return '<div class="stat-item"><span class="stat-value">' + stats.totalGames.toLocaleString() + '</span><span class="stat-label">Games Played Worldwide</span></div>'
-      + '<div class="stat-item"><span class="stat-value">' + stats.uniquePlayers.toLocaleString() + '</span><span class="stat-label">Monkeys Joined the Run</span></div>'
-      + '<div class="stat-item"><span class="stat-value">' + distStr + '</span><span class="stat-label">Run by All Players Combined</span></div>'
-      + '<div class="stat-item"><span class="stat-value">' + stats.totalPlushies.toLocaleString() + '</span><span class="stat-label">Plushies Rescued So Far</span></div>'
-      + '<div class="stat-item full-width"><span class="stat-value">' + stats.topScore.toLocaleString() + '</span><span class="stat-label">All-Time Highest Score</span></div>';
+  var STAT_DISPLAY_MS = 3500;
+  var STAT_TRANSITION_MS = 400;
+  var statEntries = [];
+  var statStartTime = 0;
+  var statAnimFrame = null;
+
+  function buildStatEntries(stats) {
+    if (!stats) return [];
+    var entries = [];
+    var km, distStr;
+    if (stats.totalGames > 0) entries.push({ value: stats.totalGames.toLocaleString(), label: 'Games Played Worldwide' });
+    if (stats.uniquePlayers > 0) entries.push({ value: stats.uniquePlayers.toLocaleString(), label: 'Monkeys Joined the Run' });
+    if (stats.totalDistance > 0) {
+      km = stats.totalDistance / 1000;
+      distStr = km >= 1 ? Math.floor(km).toLocaleString() + 'km' : Math.floor(stats.totalDistance).toLocaleString() + 'm';
+      entries.push({ value: distStr, label: 'Run by All Players Combined' });
+    }
+    if (stats.totalPlushies > 0) entries.push({ value: stats.totalPlushies.toLocaleString(), label: 'Plushies Rescued So Far' });
+    if (stats.topScore > 0) entries.push({ value: stats.topScore.toLocaleString(), label: 'All-Time Highest Score' });
+    if (stats.avgScore > 0) entries.push({ value: Math.round(stats.avgScore).toLocaleString(), label: 'Average Score Per Game' });
+    if (stats.medianScore > 0) entries.push({ value: Math.round(stats.medianScore).toLocaleString(), label: 'Median Score — Are You Above?' });
+    if (stats.gamesToday > 0) entries.push({ value: stats.gamesToday.toLocaleString(), label: 'Games Played Today' });
+    if (stats.maxDistance > 0) {
+      km = stats.maxDistance / 1000;
+      distStr = km >= 1 ? km.toFixed(1) + 'km' : Math.floor(stats.maxDistance).toLocaleString() + 'm';
+      entries.push({ value: distStr, label: 'Longest Single Run' });
+    }
+    if (stats.maxPlushies > 0) entries.push({ value: stats.maxPlushies.toLocaleString(), label: 'Most Plushies in One Game' });
+    if (stats.avgDistance > 0) {
+      km = stats.avgDistance / 1000;
+      distStr = km >= 1 ? km.toFixed(1) + 'km' : Math.round(stats.avgDistance).toLocaleString() + 'm';
+      entries.push({ value: distStr, label: 'Average Distance Per Run' });
+    }
+    if (stats.avgPlushies > 0) entries.push({ value: stats.avgPlushies.toFixed(1), label: 'Plushies Rescued Per Game' });
+    if (stats.topScorer) entries.push({ value: stats.topScorer, label: 'Reigning Champion' });
+    if (stats.newestPlayer) entries.push({ value: stats.newestPlayer, label: 'Newest Monkey on the Run' });
+    if (stats.pcGames > 0 && stats.mobileGames > 0) {
+      var total = stats.pcGames + stats.mobileGames;
+      var pcPct = Math.round((stats.pcGames / total) * 100);
+      entries.push({ value: pcPct + '% PC / ' + (100 - pcPct) + '% Mobile', label: 'Platform Split' });
+    }
+    return entries;
+  }
+
+  function renderStatLine(entry) {
+    return '<span class="stat-value">' + entry.value + '</span><span class="stat-label">' + entry.label + '</span>';
+  }
+
+  function animateStats() {
+    if (statEntries.length === 0) return;
+    var containers = [document.getElementById('panelGlobalStats'), document.getElementById('mobileGlobalStats')];
+
+    var now = Date.now();
+    if (statStartTime === 0) statStartTime = now;
+    var elapsed = now - statStartTime;
+    var totalCycle = STAT_DISPLAY_MS + STAT_TRANSITION_MS;
+    var cyclePos = elapsed % totalCycle;
+    var isTransitioning = cyclePos > STAT_DISPLAY_MS;
+    var t = isTransitioning ? (cyclePos - STAT_DISPLAY_MS) / STAT_TRANSITION_MS : 0;
+    var currentIdx = Math.floor(elapsed / totalCycle) % statEntries.length;
+    var nextIdx = (currentIdx + 1) % statEntries.length;
+
+    var rollDist = 30;
+    var ease = isTransitioning ? 1 - Math.pow(1 - t, 3) : 0;
+
+    containers.forEach(function(el) {
+      if (!el) return;
+      // Ensure two stat-line children exist
+      if (!el.querySelector('.stat-line-a')) {
+        el.innerHTML = '<div class="stat-line stat-line-a"></div><div class="stat-line stat-line-b"></div>';
+      }
+      var a = el.querySelector('.stat-line-a');
+      var b = el.querySelector('.stat-line-b');
+
+      if (isTransitioning) {
+        a.innerHTML = renderStatLine(statEntries[currentIdx]);
+        b.innerHTML = renderStatLine(statEntries[nextIdx]);
+        var outY = -ease * rollDist;
+        var inY = rollDist - ease * rollDist;
+        a.style.transform = 'translateY(' + outY + 'px)';
+        a.style.opacity = (1 - ease) * 0.9;
+        b.style.transform = 'translateY(' + inY + 'px)';
+        b.style.opacity = ease * 0.9;
+      } else {
+        a.innerHTML = renderStatLine(statEntries[currentIdx]);
+        a.style.transform = 'translateY(0)';
+        a.style.opacity = 0.9;
+        b.style.transform = 'translateY(' + rollDist + 'px)';
+        b.style.opacity = 0;
+      }
+    });
+
+    statAnimFrame = requestAnimationFrame(animateStats);
   }
 
   window.renderGlobalStats = function(stats) {
-    var panel = document.getElementById('panelGlobalStats');
-    var mobile = document.getElementById('mobileGlobalStats');
-    var html = renderStatsHTML(stats);
-    if (panel) panel.innerHTML = html;
-    if (mobile) mobile.innerHTML = html;
+    statEntries = buildStatEntries(stats);
+    if (statEntries.length > 0 && !statAnimFrame) {
+      statStartTime = Date.now();
+      animateStats();
+    }
   };
 
 })();
