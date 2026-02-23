@@ -336,12 +336,10 @@
     border-bottom-color: #fbbf24;
   }
 
-  /* ---------- GLOBAL STATS (cycling single stat) ---------- */
+  /* ---------- GLOBAL STATS (batched cycling grid) ---------- */
   .global-stats {
     position: relative;
-    height: 48px;
     overflow: hidden;
-    text-align: center;
   }
   .global-stats .stats-loading {
     text-align: center;
@@ -349,13 +347,23 @@
     font-size: 13px;
     padding: 12px 0;
   }
-  .stat-line {
+  .stats-batch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    transition: none; /* animated via JS */
+  }
+  .stats-batch.stats-batch-abs {
     position: absolute;
     left: 0;
     right: 0;
     top: 0;
+  }
+  .stat-item {
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    padding: 10px 12px;
     text-align: center;
-    transition: none; /* animated via JS */
   }
   .stat-value {
     font-size: 20px;
@@ -363,7 +371,6 @@
     color: #fbbf24;
     display: block;
     font-variant-numeric: tabular-nums;
-    line-height: 1.2;
   }
   .stat-label {
     font-size: 11px;
@@ -372,6 +379,9 @@
     letter-spacing: 0.5px;
     margin-top: 2px;
     display: block;
+  }
+  .stat-item.full-width {
+    grid-column: 1 / -1;
   }
   .stats-card h3 {
     margin-bottom: 10px;
@@ -388,14 +398,17 @@
     min-width: 0;
     margin-bottom: 0;
   }
+  .controls-stats-row .stat-item {
+    padding: 7px 6px;
+  }
   .controls-stats-row .stat-value {
     font-size: 16px;
   }
   .controls-stats-row .stat-label {
     font-size: 10px;
   }
-  .controls-stats-row .global-stats {
-    height: 42px;
+  .controls-stats-row .stats-batch {
+    gap: 6px;
   }
 
   /* ---------- GAME COLUMN ---------- */
@@ -624,7 +637,8 @@
     .controls-stats-row { gap: 10px; }
     .controls-stats-row .stat-value { font-size: 14px; }
     .controls-stats-row .stat-label { font-size: 9px; }
-    .controls-stats-row .global-stats { height: 38px; }
+    .controls-stats-row .stat-item { padding: 5px 4px; }
+    .controls-stats-row .stats-batch { gap: 4px; }
   }
 
   /* ---------- RESPONSIVE: TABLET ---------- */
@@ -1289,13 +1303,15 @@ window.addEventListener('highScoreUpdated', updateDonateGate);
   setInterval(fetchAllLeaderboards, 60000);
 
   // ============================================================
-  // GLOBAL STATS CYCLING DISPLAY (matching canvas roll-up)
+  // GLOBAL STATS BATCHED CYCLING (grid pages, roll-up transition)
   // ============================================================
-  var STAT_DISPLAY_MS = 3500;
-  var STAT_TRANSITION_MS = 400;
+  var BATCH_SIZE = 5; // 4 tiles (2x2) + 1 full-width
+  var BATCH_DISPLAY_MS = 5000; // show each batch for 5s
+  var BATCH_TRANSITION_MS = 400; // roll animation duration
   var statEntries = [];
-  var statStartTime = 0;
-  var statAnimFrame = null;
+  var statBatches = []; // array of arrays, each up to BATCH_SIZE
+  var batchStartTime = 0;
+  var batchAnimFrame = null;
 
   function buildStatEntries(stats) {
     if (!stats) return [];
@@ -1335,62 +1351,96 @@ window.addEventListener('highScoreUpdated', updateDonateGate);
     return entries;
   }
 
-  function renderStatLine(entry) {
-    return '<span class="stat-value">' + entry.value + '</span><span class="stat-label">' + entry.label + '</span>';
+  function chunkIntoBatches(entries) {
+    var batches = [];
+    for (var i = 0; i < entries.length; i += BATCH_SIZE) {
+      batches.push(entries.slice(i, i + BATCH_SIZE));
+    }
+    return batches;
   }
 
-  function animateStats() {
-    if (statEntries.length === 0) return;
+  function renderBatchHTML(batch) {
+    var html = '';
+    for (var i = 0; i < batch.length; i++) {
+      var fw = (i === 4) ? ' full-width' : ''; // 5th item spans full width
+      html += '<div class="stat-item' + fw + '"><span class="stat-value">' + batch[i].value + '</span><span class="stat-label">' + batch[i].label + '</span></div>';
+    }
+    return html;
+  }
+
+  function animateBatches() {
+    if (statBatches.length <= 1) return; // no cycling needed for 0 or 1 batch
     var containers = [document.getElementById('panelGlobalStats'), document.getElementById('mobileGlobalStats')];
 
     var now = Date.now();
-    if (statStartTime === 0) statStartTime = now;
-    var elapsed = now - statStartTime;
-    var totalCycle = STAT_DISPLAY_MS + STAT_TRANSITION_MS;
+    if (batchStartTime === 0) batchStartTime = now;
+    var elapsed = now - batchStartTime;
+    var totalCycle = BATCH_DISPLAY_MS + BATCH_TRANSITION_MS;
     var cyclePos = elapsed % totalCycle;
-    var isTransitioning = cyclePos > STAT_DISPLAY_MS;
-    var t = isTransitioning ? (cyclePos - STAT_DISPLAY_MS) / STAT_TRANSITION_MS : 0;
-    var currentIdx = Math.floor(elapsed / totalCycle) % statEntries.length;
-    var nextIdx = (currentIdx + 1) % statEntries.length;
-
-    var rollDist = 30;
+    var isTransitioning = cyclePos > BATCH_DISPLAY_MS;
+    var t = isTransitioning ? (cyclePos - BATCH_DISPLAY_MS) / BATCH_TRANSITION_MS : 0;
+    var currentIdx = Math.floor(elapsed / totalCycle) % statBatches.length;
+    var nextIdx = (currentIdx + 1) % statBatches.length;
     var ease = isTransitioning ? 1 - Math.pow(1 - t, 3) : 0;
 
     containers.forEach(function(el) {
       if (!el) return;
-      // Ensure two stat-line children exist
-      if (!el.querySelector('.stat-line-a')) {
-        el.innerHTML = '<div class="stat-line stat-line-a"></div><div class="stat-line stat-line-b"></div>';
+      // Ensure two batch children exist
+      var a = el.querySelector('.stats-batch-a');
+      var b = el.querySelector('.stats-batch-b');
+      if (!a) {
+        el.innerHTML = '<div class="stats-batch stats-batch-a"></div><div class="stats-batch stats-batch-abs stats-batch-b"></div>';
+        a = el.querySelector('.stats-batch-a');
+        b = el.querySelector('.stats-batch-b');
       }
-      var a = el.querySelector('.stat-line-a');
-      var b = el.querySelector('.stat-line-b');
 
       if (isTransitioning) {
-        a.innerHTML = renderStatLine(statEntries[currentIdx]);
-        b.innerHTML = renderStatLine(statEntries[nextIdx]);
-        var outY = -ease * rollDist;
-        var inY = rollDist - ease * rollDist;
+        a.innerHTML = renderBatchHTML(statBatches[currentIdx]);
+        b.innerHTML = renderBatchHTML(statBatches[nextIdx]);
+        // Lock container height during transition
+        var h = a.offsetHeight || 120;
+        el.style.height = h + 'px';
+        var outY = -ease * h;
+        var inY = h - ease * h;
         a.style.transform = 'translateY(' + outY + 'px)';
-        a.style.opacity = (1 - ease) * 0.9;
+        a.style.opacity = 1 - ease;
         b.style.transform = 'translateY(' + inY + 'px)';
-        b.style.opacity = ease * 0.9;
+        b.style.opacity = ease;
       } else {
-        a.innerHTML = renderStatLine(statEntries[currentIdx]);
+        a.innerHTML = renderBatchHTML(statBatches[currentIdx]);
         a.style.transform = 'translateY(0)';
-        a.style.opacity = 0.9;
-        b.style.transform = 'translateY(' + rollDist + 'px)';
+        a.style.opacity = 1;
         b.style.opacity = 0;
+        el.style.height = ''; // release height lock
       }
     });
 
-    statAnimFrame = requestAnimationFrame(animateStats);
+    batchAnimFrame = requestAnimationFrame(animateBatches);
   }
 
   window.renderGlobalStats = function(stats) {
     statEntries = buildStatEntries(stats);
-    if (statEntries.length > 0 && !statAnimFrame) {
-      statStartTime = Date.now();
-      animateStats();
+    statBatches = chunkIntoBatches(statEntries);
+    var containers = [document.getElementById('panelGlobalStats'), document.getElementById('mobileGlobalStats')];
+
+    if (statBatches.length === 0) return;
+
+    // Render first batch immediately
+    var firstHTML = renderBatchHTML(statBatches[0]);
+    containers.forEach(function(el) {
+      if (!el) return;
+      if (statBatches.length === 1) {
+        // Only one batch, no cycling needed — just render static grid
+        el.innerHTML = '<div class="stats-batch">' + firstHTML + '</div>';
+      } else {
+        el.innerHTML = '<div class="stats-batch stats-batch-a">' + firstHTML + '</div><div class="stats-batch stats-batch-abs stats-batch-b" style="opacity:0"></div>';
+      }
+    });
+
+    // Start cycling if multiple batches
+    if (statBatches.length > 1 && !batchAnimFrame) {
+      batchStartTime = Date.now();
+      animateBatches();
     }
   };
 
