@@ -232,6 +232,7 @@ document.addEventListener('keydown', (e) => {
     if (e.code === 'Backspace') {
       e.preventDefault();
       playerName = playerName.slice(0, -1);
+      if (mobileNameInput) mobileNameInput.value = playerName;
       return;
     }
     // Allow typed characters (letters, numbers, some symbols)
@@ -240,6 +241,7 @@ document.addEventListener('keydown', (e) => {
       const c = e.key;
       if (/^[a-zA-Z0-9 _\-.]$/.test(c)) {
         playerName += c;
+        if (mobileNameInput) mobileNameInput.value = playerName;
       }
       return;
     }
