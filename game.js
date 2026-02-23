@@ -71,12 +71,12 @@ async function fetchLeaderboard() {
   leaderboardLoading = false;
 }
 
-async function submitScore(name, scoreVal) {
+async function submitScore(name, scoreVal, distVal, plushiesVal) {
   if (!supabaseClient) return;
   try {
     await supabaseClient
       .from('leaderboard')
-      .insert([{ name: name.substring(0, 20), score: scoreVal, platform: detectedPlatform }]);
+      .insert([{ name: name.substring(0, 20), score: scoreVal, distance: distVal, plushies: plushiesVal, platform: detectedPlatform }]);
     // Force refresh leaderboard after submit
     leaderboardLastFetch = 0;
     fetchLeaderboard();
@@ -1173,7 +1173,7 @@ function gameOver() {
 
   // Submit score to leaderboard
   if (playerName && score > 0) {
-    submitScore(playerName, score);
+    submitScore(playerName, score, Math.round(distance * 10) / 10, plushiesCollected);
     // Signal panel leaderboard to refresh
     setTimeout(function() { window.dispatchEvent(new Event('leaderboardUpdated')); }, 1500);
   }
