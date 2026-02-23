@@ -29,8 +29,8 @@ const JUMP_FORCE = -15;
 const ROLL_DURATION = 600;     // ms
 const LANE_SWITCH_SPEED = 14;
 const INITIAL_GAME_SPEED = 3;
-const MAX_GAME_SPEED = 13;
-const SPEED_INCREMENT = 0.0286;
+const MAX_GAME_SPEED = 10.5;
+const SPEED_INCREMENT = 0.02;
 
 // Colors
 const COLORS = {
@@ -376,7 +376,7 @@ function spawnObstacle() {
   }
 
   // Sometimes spawn double obstacle (2 lanes blocked) - only later in game
-  const doDouble = Math.random() < 0.25 && distance > 35;
+  const doDouble = Math.random() < 0.18 && distance > 50;
   const spawnY = HORIZON; // spawn at the horizon, same depth as background trees
   const obs = [{
     x: getLaneX(lane),
@@ -571,7 +571,7 @@ function update(dt) {
 
   // --- SPAWN MANAGEMENT ---
   // Early game has much wider gaps; tightens over time
-  const spawnGap = Math.max(140, 250 - distance * 1.14);
+  const spawnGap = Math.max(170, 290 - distance * 1.14);
   spawnTimer += gameSpeed;
   if (spawnTimer > spawnGap + Math.random() * 80) {
     spawnTimer = 0;
@@ -812,11 +812,11 @@ function playerHit() {
   if (player.hits === 1) {
     // FIRST HIT: stumble, slow down, chasers close in
     player.stunned = true;
-    player.stunnedTimer = 1500;      // brief invincibility after stumble
+    player.stunnedTimer = 2000;      // brief invincibility after stumble
     player.isInvincible = true;
-    player.invincibleTimer = 1500;
+    player.invincibleTimer = 2000;
     player.preHitSpeed = gameSpeed;
-    player.recoveryTimer = 6000;     // 6 seconds to recover
+    player.recoveryTimer = 8000;     // 8 seconds to recover
 
     // Slow down significantly
     gameSpeed = Math.max(INITIAL_GAME_SPEED, gameSpeed * 0.4);
@@ -2080,7 +2080,7 @@ function drawHUD() {
       ctx.fillStyle = 'rgba(255,255,255,0.2)';
       ctx.fillRect(barX, barY, barW, barH);
       ctx.fillStyle = '#4CAF50';
-      ctx.fillRect(barX, barY, barW * (1 - player.recoveryTimer / 6000), barH);
+      ctx.fillRect(barX, barY, barW * (1 - player.recoveryTimer / 8000), barH);
     }
   }
 }
