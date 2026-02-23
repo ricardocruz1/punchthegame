@@ -28,6 +28,18 @@ try {
 }
 
 // ============================================================
+// PLATFORM DETECTION
+// ============================================================
+const detectedPlatform = (function() {
+  // Combine multiple signals for reliable detection
+  const hasTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const isMobileUA = /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const isNarrow = window.innerWidth <= 860;
+  // iPad with desktop UA still has touch + narrowish viewport
+  return (hasTouch && (isMobileUA || isNarrow)) ? 'mobile' : 'pc';
+})();
+
+// ============================================================
 // LEADERBOARD STATE
 // ============================================================
 let leaderboardData = [];      // top 10 scores [{name, score, created_at}]
@@ -45,6 +57,7 @@ async function fetchLeaderboard() {
     const { data, error } = await supabaseClient
       .from('leaderboard')
       .select('name, score, created_at')
+      .eq('platform', detectedPlatform)
       .order('score', { ascending: false })
       .limit(10);
 
@@ -63,7 +76,7 @@ async function submitScore(name, scoreVal) {
   try {
     await supabaseClient
       .from('leaderboard')
-      .insert([{ name: name.substring(0, 20), score: scoreVal }]);
+      .insert([{ name: name.substring(0, 20), score: scoreVal, platform: detectedPlatform }]);
     // Force refresh leaderboard after submit
     leaderboardLastFetch = 0;
     fetchLeaderboard();
@@ -2455,7 +2468,7 @@ function drawLeaderboard(startY, compact) {
   ctx.fillStyle = '#fbbf24';
   ctx.font = 'bold ' + titleSize + 'px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('WORLD LEADERBOARD', lbX, startY);
+  ctx.fillText(detectedPlatform === 'mobile' ? 'MOBILE LEADERBOARD' : 'PC LEADERBOARD', lbX, startY);
 
   let y = startY + rowH + 4;
 

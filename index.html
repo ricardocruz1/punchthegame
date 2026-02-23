@@ -305,6 +305,37 @@
     margin-bottom: 8px;
   }
 
+  /* ---------- LEADERBOARD TABS ---------- */
+  .lb-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .lb-tab {
+    flex: 1;
+    padding: 6px 0;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    font-family: inherit;
+  }
+  .lb-tab:hover {
+    color: #999;
+  }
+  .lb-tab.active {
+    color: #fbbf24;
+    border-bottom-color: #fbbf24;
+  }
+
   /* ---------- GAME COLUMN ---------- */
   .game-column {
     flex-shrink: 0;
@@ -752,6 +783,10 @@
 
     <div class="panel-card leaderboard-card">
       <h3>Global Leaderboard</h3>
+      <div class="lb-tabs">
+        <button class="lb-tab active" data-target="panelLeaderboard" data-platform="pc" onclick="switchLbTab(this)">PC</button>
+        <button class="lb-tab" data-target="panelLeaderboard" data-platform="mobile" onclick="switchLbTab(this)">Mobile</button>
+      </div>
       <div id="panelLeaderboard" class="panel-leaderboard">
         <div class="lb-loading">Loading...</div>
       </div>
@@ -905,6 +940,10 @@
 
   <div class="panel-card leaderboard-card">
     <h3>Global Leaderboard</h3>
+    <div class="lb-tabs">
+      <button class="lb-tab" data-target="mobileLeaderboard" data-platform="pc" onclick="switchLbTab(this)">PC</button>
+      <button class="lb-tab active" data-target="mobileLeaderboard" data-platform="mobile" onclick="switchLbTab(this)">Mobile</button>
+    </div>
     <div id="mobileLeaderboard" class="panel-leaderboard">
       <div class="lb-loading">Loading...</div>
     </div>
@@ -1057,12 +1096,21 @@ window.addEventListener('highScoreUpdated', updateDonateGate);
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script>
-// Panel leaderboard (top 20, shared across desktop panel + mobile overlay)
+// Panel leaderboard (top 20 per platform, shared across desktop panel + mobile overlay)
 (function() {
   const SB_URL = 'https://oruxxgyqjxcziaqxzrdg.supabase.co';
   const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ydXh4Z3lxanhjemlhcXh6cmRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjM3NjIsImV4cCI6MjA4NzQzOTc2Mn0.cGWDNCe5BFJtEjzy1gz4lboUtijurDGm3JiOZBfcCAc';
   let sb;
   try { sb = window.supabase.createClient(SB_URL, SB_KEY); } catch(e) { return; }
+
+  // Cache both platform datasets
+  let lbCache = { pc: null, mobile: null };
+
+  // Track which tab is active per container
+  let activeTab = {
+    panelLeaderboard: 'pc',
+    mobileLeaderboard: 'mobile'
+  };
 
   function rankClass(i) {
     if (i === 0) return 'gold';
@@ -1105,33 +1153,62 @@ window.addEventListener('highScoreUpdated', updateDonateGate);
     }).join('') + '</div>';
   }
 
-  async function fetchPanelLeaderboard() {
+  async function fetchPlatformLeaderboard(platform) {
     try {
       const { data, error } = await sb
         .from('leaderboard')
         .select('name, score, created_at')
+        .eq('platform', platform)
         .order('score', { ascending: false })
         .limit(20);
       if (!error && data) {
-        renderLeaderboard('panelLeaderboard', data);
-        renderLeaderboard('mobileLeaderboard', data);
+        lbCache[platform] = data;
       }
     } catch(e) {
       console.warn('Panel leaderboard fetch failed:', e);
     }
   }
 
+  async function fetchAllLeaderboards() {
+    await Promise.all([fetchPlatformLeaderboard('pc'), fetchPlatformLeaderboard('mobile')]);
+    // Render whichever tab is active for each container
+    renderLeaderboard('panelLeaderboard', lbCache[activeTab.panelLeaderboard]);
+    renderLeaderboard('mobileLeaderboard', lbCache[activeTab.mobileLeaderboard]);
+  }
+
+  // Expose tab switching globally
+  window.switchLbTab = function(btn) {
+    var platform = btn.getAttribute('data-platform');
+    var target = btn.getAttribute('data-target');
+    // Update active tab state
+    activeTab[target] = platform;
+    // Update tab button styles
+    var tabs = btn.parentElement.querySelectorAll('.lb-tab');
+    tabs.forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+    // Render from cache
+    if (lbCache[platform]) {
+      renderLeaderboard(target, lbCache[platform]);
+    } else {
+      var el = document.getElementById(target);
+      if (el) el.innerHTML = '<div class="lb-loading">Loading...</div>';
+      fetchPlatformLeaderboard(platform).then(function() {
+        renderLeaderboard(target, lbCache[platform]);
+      });
+    }
+  };
+
   // Fetch on load
-  fetchPanelLeaderboard();
+  fetchAllLeaderboards();
 
   // Refresh after each game over (game.js dispatches these)
   window.addEventListener('highScoreUpdated', function() {
-    setTimeout(fetchPanelLeaderboard, 1500);
+    setTimeout(fetchAllLeaderboards, 1500);
   });
-  window.addEventListener('leaderboardUpdated', fetchPanelLeaderboard);
+  window.addEventListener('leaderboardUpdated', fetchAllLeaderboards);
 
   // Also refresh every 60s
-  setInterval(fetchPanelLeaderboard, 60000);
+  setInterval(fetchAllLeaderboards, 60000);
 })();
 </script>
 <script src="game.js"></script>
