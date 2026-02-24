@@ -174,10 +174,12 @@ async function fetchLeaderboard() {
 
 async function submitScore(name, scoreVal, distVal, plushiesVal) {
   if (!supabaseClient) return;
+  var safeName = sanitizeName(name);
+  if (!safeName) return;
   try {
     await supabaseClient
       .from('leaderboard')
-      .insert([{ name: name.substring(0, 20), score: scoreVal, distance: distVal, plushies: plushiesVal, platform: detectedPlatform }]);
+      .insert([{ name: safeName, score: scoreVal, distance: distVal, plushies: plushiesVal, platform: detectedPlatform }]);
     // Force refresh leaderboard after submit
     leaderboardLastFetch = 0;
     fetchLeaderboard();
@@ -282,11 +284,13 @@ async function fetchDailyStats() {
 
 async function submitDailyScore(name, scoreVal, distVal, plushiesVal) {
   if (!supabaseClient) return;
+  var safeName = sanitizeName(name);
+  if (!safeName) return;
   try {
     await supabaseClient
       .from('daily_leaderboard')
       .insert([{
-        name: name.substring(0, 20),
+        name: safeName,
         score: scoreVal,
         distance: distVal,
         plushies: plushiesVal,
@@ -305,7 +309,10 @@ async function submitDailyScore(name, scoreVal, distVal, plushiesVal) {
 // ============================================================
 // PLAYER NAME
 // ============================================================
-let playerName = localStorage.getItem('punchPlayerName') || '';
+function sanitizeName(str) {
+  return String(str || '').replace(/[^a-zA-Z0-9 _\-.]/g, '').substring(0, 15);
+}
+let playerName = sanitizeName(localStorage.getItem('punchPlayerName'));
 let nameInputActive = false;
 let nameInputCursor = 0;
 let nameInputBlink = 0;

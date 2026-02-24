@@ -1331,6 +1331,10 @@ window.addEventListener('highScoreUpdated', updateDonateGate);
     mobileLeaderboard: 'mobile'
   };
 
+  function escapeHTML(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
   function rankClass(i) {
     if (i === 0) return 'gold';
     if (i === 1) return 'silver';
@@ -1357,7 +1361,7 @@ window.addEventListener('highScoreUpdated', updateDonateGate);
       }
       return '<div class="lb-entry">'
         + '<span class="lb-rank ' + rankClass(i) + '">' + (i + 1) + '.</span>'
-        + '<span class="lb-name">' + row.name.replace(/</g, '&lt;') + '</span>'
+        + '<span class="lb-name">' + escapeHTML(row.name) + '</span>'
         + '<span class="lb-date">' + dateStr + '</span>'
         + '<span class="lb-score">' + row.score.toLocaleString() + '</span>'
         + '</div>';
@@ -1465,7 +1469,7 @@ window.addEventListener('highScoreUpdated', updateDonateGate);
       var distStr = row.distance != null ? Math.floor(row.distance) + 'm' : '';
       return '<div class="lb-entry">'
         + '<span class="lb-rank ' + rankClass(i) + '">' + (i + 1) + '.</span>'
-        + '<span class="lb-name">' + row.name.replace(/</g, '&lt;') + '</span>'
+        + '<span class="lb-name">' + escapeHTML(row.name) + '</span>'
         + '<span class="lb-date">' + distStr + '</span>'
         + '<span class="lb-score">' + row.score.toLocaleString() + '</span>'
         + '</div>';
@@ -1654,8 +1658,8 @@ window.addEventListener('highScoreUpdated', updateDonateGate);
       entries.push({ value: distStr, label: 'Average Distance Per Run' });
     }
     if (stats.avgPlushies > 0) entries.push({ value: stats.avgPlushies.toFixed(1), label: 'Plushies Rescued Per Game' });
-    if (stats.topScorer) entries.push({ value: stats.topScorer, label: 'Reigning Champion' });
-    if (stats.newestPlayer) entries.push({ value: stats.newestPlayer, label: 'Newest Monkey on the Run' });
+    if (stats.topScorer) entries.push({ value: escapeHTML(stats.topScorer), label: 'Reigning Champion' });
+    if (stats.newestPlayer) entries.push({ value: escapeHTML(stats.newestPlayer), label: 'Newest Monkey on the Run' });
     if (stats.pcGames > 0 && stats.mobileGames > 0) {
       var total = stats.pcGames + stats.mobileGames;
       var pcPct = Math.round((stats.pcGames / total) * 100);
