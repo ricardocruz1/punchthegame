@@ -518,11 +518,31 @@ document.addEventListener('keydown', (e) => {
     const touch = e.touches[0];
     const tapX = (touch.clientX - rect.left) * scaleX;
     const tapY = (touch.clientY - rect.top) * scaleY;
-    // Daily challenge button: centered at (W/2, H * 0.87), size 200x36
-    if (tapY > H * 0.87 - 18 && tapY < H * 0.87 + 18 && tapX > W/2 - 100 && tapX < W/2 + 100) {
-      startDailyGame();
+    // Daily challenge button / Play button
+    if (detectedPlatform === 'mobile') {
+      // Side-by-side layout: PLAY (left) and DAILY (right) at H * 0.78
+      var mbtnY = H * 0.78;
+      var mbtnW = 120;
+      var mgap = 12;
+      var mbtnH = 44;
+      var playLeft = W/2 - mbtnW - mgap/2;
+      var dailyLeft = W/2 + mgap/2;
+      if (tapY > mbtnY - mbtnH/2 && tapY < mbtnY + mbtnH/2) {
+        if (tapX > dailyLeft && tapX < dailyLeft + mbtnW) {
+          startDailyGame();
+        } else {
+          startNormalGame();
+        }
+      } else {
+        startNormalGame();
+      }
     } else {
-      startNormalGame();
+      // Desktop: Daily button at (W/2, H * 0.87), size 200x36
+      if (tapY > H * 0.87 - 18 && tapY < H * 0.87 + 18 && tapX > W/2 - 100 && tapX < W/2 + 100) {
+        startDailyGame();
+      } else {
+        startNormalGame();
+      }
     }
     return;
   }
@@ -745,11 +765,31 @@ canvas.addEventListener('click', (e) => {
     const scaleY = H / rect.height;
     const clickX = (e.clientX - rect.left) * scaleX;
     const clickY = (e.clientY - rect.top) * scaleY;
-    // Daily challenge button: centered at (W/2, H * 0.87), size 200x36
-    if (clickY > H * 0.87 - 18 && clickY < H * 0.87 + 18 && clickX > W/2 - 100 && clickX < W/2 + 100) {
-      startDailyGame();
+    // Daily challenge button / Play button
+    if (detectedPlatform === 'mobile') {
+      // Side-by-side layout: PLAY (left) and DAILY (right) at H * 0.78
+      var mbtnY = H * 0.78;
+      var mbtnW = 120;
+      var mgap = 12;
+      var mbtnH = 44;
+      var playLeft = W/2 - mbtnW - mgap/2;
+      var dailyLeft = W/2 + mgap/2;
+      if (clickY > mbtnY - mbtnH/2 && clickY < mbtnY + mbtnH/2) {
+        if (clickX > dailyLeft && clickX < dailyLeft + mbtnW) {
+          startDailyGame();
+        } else {
+          startNormalGame();
+        }
+      } else {
+        startNormalGame();
+      }
     } else {
-      startNormalGame();
+      // Desktop: Daily button at (W/2, H * 0.87), size 200x36
+      if (clickY > H * 0.87 - 18 && clickY < H * 0.87 + 18 && clickX > W/2 - 100 && clickX < W/2 + 100) {
+        startDailyGame();
+      } else {
+        startNormalGame();
+      }
     }
     return;
   }
@@ -2961,7 +3001,8 @@ function drawLeaderboard(startY, compact) {
 
   var shortMonths = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-  for (let i = 0; i < leaderboardData.length && i < 10; i++) {
+  var maxRows = detectedPlatform === 'mobile' ? 5 : 10;
+  for (let i = 0; i < leaderboardData.length && i < maxRows; i++) {
     const entry = leaderboardData[i];
     const isMe = entry.name === playerName;
 
@@ -3214,120 +3255,170 @@ function drawMenuScreen() {
   // Leaderboard
   drawLeaderboard(H * 0.40, false);
 
-  // Start button
-  const pulse = 1 + Math.sin(Date.now() * 0.005) * 0.05;
-  ctx.save();
-  ctx.translate(W / 2, H * 0.78);
-  ctx.scale(pulse, pulse);
-
-  ctx.fillStyle = COLORS.punchRed;
-  roundRect(ctx, -80, -22, 160, 44, 22);
-  ctx.fill();
-  ctx.fillStyle = '#CC3333';
-  roundRect(ctx, -80, 0, 160, 22, { bl: 22, br: 22, tl: 0, tr: 0 });
-  ctx.fill();
-
-  ctx.fillStyle = '#fff';
-  ctx.font = 'bold 20px Arial';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('TAP TO START', 0, 0);
-  ctx.restore();
-
-  // Daily challenge button
+  // Start button + Daily challenge button
   var dayNum = getDailyDayNumber();
-  ctx.save();
-  ctx.translate(W / 2, H * 0.87);
+  const pulse = 1 + Math.sin(Date.now() * 0.005) * 0.05;
 
-  // Button background — golden outline style
-  ctx.strokeStyle = '#fbbf24';
-  ctx.lineWidth = 2;
-  roundRect(ctx, -100, -18, 200, 36, 18);
-  ctx.stroke();
-  ctx.fillStyle = 'rgba(251, 191, 36, 0.1)';
-  roundRect(ctx, -100, -18, 200, 36, 18);
-  ctx.fill();
+  if (detectedPlatform === 'mobile') {
+    // ---- MOBILE: side-by-side PLAY (left) and DAILY (right) ----
+    var btnY = H * 0.78;
+    var gap = 12;
+    var btnW = 120;
+    var btnH = 44;
 
-  ctx.fillStyle = '#fbbf24';
-  ctx.font = 'bold 14px Arial';
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText('DAILY CHALLENGE #' + dayNum, 0, 0);
-  ctx.restore();
-
-  // Hint text
-  ctx.fillStyle = 'rgba(255,255,255,0.35)';
-  ctx.font = '11px Arial';
-  ctx.textAlign = 'center';
-  ctx.fillText('press D for daily  \u00B7  R to play', W / 2, H * 0.87 + 38);
-
-  // Community stats roll-up display
-  var entries = getStatEntries();
-  if (entries.length > 0) {
-    var now = Date.now();
-    if (statTimer === 0) statTimer = now;
-    var elapsed = now - statTimer;
-
-    // Determine phase: showing or transitioning
-    var totalCycle = STAT_DISPLAY_MS + STAT_TRANSITION_MS;
-    var cyclePos = elapsed % totalCycle;
-    var isTransitioning = cyclePos > STAT_DISPLAY_MS;
-    var t = isTransitioning ? (cyclePos - STAT_DISPLAY_MS) / STAT_TRANSITION_MS : 0; // 0..1
-
-    // Advance to next stat when transition completes
-    var currentIdx = Math.floor(elapsed / totalCycle) % entries.length;
-    var nextIdx = (currentIdx + 1) % entries.length;
-
-    var current = entries[currentIdx];
-    var next = entries[nextIdx];
-
-    var baseY = H * 0.955;
-    var rollDist = 30; // pixels to roll
-
+    // PLAY button (left)
     ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, baseY - 28, W, 48);
-    ctx.clip();
-
+    ctx.translate(W / 2 - btnW / 2 - gap / 2, btnY);
+    ctx.scale(pulse, pulse);
+    ctx.fillStyle = COLORS.punchRed;
+    roundRect(ctx, -btnW / 2, -btnH / 2, btnW, btnH, 22);
+    ctx.fill();
+    ctx.fillStyle = '#CC3333';
+    roundRect(ctx, -btnW / 2, 0, btnW, btnH / 2, { bl: 22, br: 22, tl: 0, tr: 0 });
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 18px Arial';
     ctx.textAlign = 'center';
-
-    if (isTransitioning) {
-      // Ease out cubic
-      var ease = 1 - Math.pow(1 - t, 3);
-      var outY = baseY - ease * rollDist;
-      var inY = baseY + rollDist - ease * rollDist;
-      var outAlpha = 1 - ease;
-      var inAlpha = ease;
-
-      // Current stat rolling out (up)
-      ctx.globalAlpha = outAlpha * 0.9;
-      ctx.fillStyle = '#fbbf24';
-      ctx.font = 'bold 18px Arial';
-      ctx.fillText(current.value, W / 2, outY);
-      ctx.fillStyle = '#a1a1aa';
-      ctx.font = '11px Arial';
-      ctx.fillText(current.label, W / 2, outY + 16);
-
-      // Next stat rolling in (from below)
-      ctx.globalAlpha = inAlpha * 0.9;
-      ctx.fillStyle = '#fbbf24';
-      ctx.font = 'bold 18px Arial';
-      ctx.fillText(next.value, W / 2, inY);
-      ctx.fillStyle = '#a1a1aa';
-      ctx.font = '11px Arial';
-      ctx.fillText(next.label, W / 2, inY + 16);
-    } else {
-      // Static display
-      ctx.globalAlpha = 0.9;
-      ctx.fillStyle = '#fbbf24';
-      ctx.font = 'bold 18px Arial';
-      ctx.fillText(current.value, W / 2, baseY);
-      ctx.fillStyle = '#a1a1aa';
-      ctx.font = '11px Arial';
-      ctx.fillText(current.label, W / 2, baseY + 16);
-    }
-
+    ctx.textBaseline = 'middle';
+    ctx.fillText('PLAY', 0, 0);
     ctx.restore();
+
+    // DAILY button (right)
+    ctx.save();
+    ctx.translate(W / 2 + btnW / 2 + gap / 2, btnY);
+    ctx.scale(pulse, pulse);
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 2;
+    roundRect(ctx, -btnW / 2, -btnH / 2, btnW, btnH, 22);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(251, 191, 36, 0.1)';
+    roundRect(ctx, -btnW / 2, -btnH / 2, btnW, btnH, 22);
+    ctx.fill();
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 13px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('DAILY #' + dayNum, 0, 0);
+    ctx.restore();
+
+    // No hint text or community stats on mobile — they exist in the HTML overlay
+
+  } else {
+    // ---- DESKTOP: original stacked layout ----
+
+    // Start button
+    ctx.save();
+    ctx.translate(W / 2, H * 0.78);
+    ctx.scale(pulse, pulse);
+
+    ctx.fillStyle = COLORS.punchRed;
+    roundRect(ctx, -80, -22, 160, 44, 22);
+    ctx.fill();
+    ctx.fillStyle = '#CC3333';
+    roundRect(ctx, -80, 0, 160, 22, { bl: 22, br: 22, tl: 0, tr: 0 });
+    ctx.fill();
+
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 20px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('TAP TO START', 0, 0);
+    ctx.restore();
+
+    // Daily challenge button
+    ctx.save();
+    ctx.translate(W / 2, H * 0.87);
+
+    // Button background — golden outline style
+    ctx.strokeStyle = '#fbbf24';
+    ctx.lineWidth = 2;
+    roundRect(ctx, -100, -18, 200, 36, 18);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(251, 191, 36, 0.1)';
+    roundRect(ctx, -100, -18, 200, 36, 18);
+    ctx.fill();
+
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('DAILY CHALLENGE #' + dayNum, 0, 0);
+    ctx.restore();
+
+    // Hint text
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.font = '11px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('press D for daily  \u00B7  R to play', W / 2, H * 0.87 + 38);
+
+    // Community stats roll-up display
+    var entries = getStatEntries();
+    if (entries.length > 0) {
+      var now = Date.now();
+      if (statTimer === 0) statTimer = now;
+      var elapsed = now - statTimer;
+
+      // Determine phase: showing or transitioning
+      var totalCycle = STAT_DISPLAY_MS + STAT_TRANSITION_MS;
+      var cyclePos = elapsed % totalCycle;
+      var isTransitioning = cyclePos > STAT_DISPLAY_MS;
+      var t = isTransitioning ? (cyclePos - STAT_DISPLAY_MS) / STAT_TRANSITION_MS : 0; // 0..1
+
+      // Advance to next stat when transition completes
+      var currentIdx = Math.floor(elapsed / totalCycle) % entries.length;
+      var nextIdx = (currentIdx + 1) % entries.length;
+
+      var current = entries[currentIdx];
+      var next = entries[nextIdx];
+
+      var baseY = H * 0.955;
+      var rollDist = 30; // pixels to roll
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(0, baseY - 28, W, 48);
+      ctx.clip();
+
+      ctx.textAlign = 'center';
+
+      if (isTransitioning) {
+        // Ease out cubic
+        var ease = 1 - Math.pow(1 - t, 3);
+        var outY = baseY - ease * rollDist;
+        var inY = baseY + rollDist - ease * rollDist;
+        var outAlpha = 1 - ease;
+        var inAlpha = ease;
+
+        // Current stat rolling out (up)
+        ctx.globalAlpha = outAlpha * 0.9;
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = 'bold 18px Arial';
+        ctx.fillText(current.value, W / 2, outY);
+        ctx.fillStyle = '#a1a1aa';
+        ctx.font = '11px Arial';
+        ctx.fillText(current.label, W / 2, outY + 16);
+
+        // Next stat rolling in (from below)
+        ctx.globalAlpha = inAlpha * 0.9;
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = 'bold 18px Arial';
+        ctx.fillText(next.value, W / 2, inY);
+        ctx.fillStyle = '#a1a1aa';
+        ctx.font = '11px Arial';
+        ctx.fillText(next.label, W / 2, inY + 16);
+      } else {
+        // Static display
+        ctx.globalAlpha = 0.9;
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = 'bold 18px Arial';
+        ctx.fillText(current.value, W / 2, baseY);
+        ctx.fillStyle = '#a1a1aa';
+        ctx.font = '11px Arial';
+        ctx.fillText(current.label, W / 2, baseY + 16);
+      }
+
+      ctx.restore();
+    }
   }
 
 }
