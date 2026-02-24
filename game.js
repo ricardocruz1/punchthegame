@@ -378,6 +378,8 @@ let distance = 0;
 let frameCount = 0;
 let lastTime = 0;
 let deltaTime = 0;
+let timeAccumulator = 0;
+const FIXED_DT = 1 / 60;
 let shakeAmount = 0;
 let flashAlpha = 0;
 let newRecordTriggered = false;
@@ -995,6 +997,7 @@ function startGame() {
   distance = 0;
   frameCount = 0;
   shakeAmount = 0;
+  timeAccumulator = 0;
 
   // Reset per-run tracking
   newRecordTriggered = false;
@@ -1040,6 +1043,13 @@ function startGame() {
   lastHits = 0;
   wasAlive = true;
 
+  // Pre-roll first spawn thresholds
+  spawnTimer = 0;
+  plushieSpawnTimer = 0;
+  chaserSpawnTimer = 0;
+  nextSpawnThreshold = gameRandom() * 80;
+  nextPlushieThreshold = 200 + gameRandom() * 100;
+
   // Initialize ground stripes
   for (let i = 0; i < 20; i++) {
     groundStripes.push({ z: i * 50 });
@@ -1047,7 +1057,7 @@ function startGame() {
 
   // Initialize background elements
   for (let i = 0; i < 8; i++) {
-    bgElements.push(createBgElement(gameRandom() * H));
+    bgElements.push(createBgElement(Math.random() * H));
   }
 }
 
@@ -1070,13 +1080,13 @@ function getLaneX(lane) {
 }
 
 function createBgElement(y) {
-  const side = gameRandom() > 0.5 ? 1 : -1;
   const groundStart = HORIZON;
+  const side = Math.random() > 0.5 ? 1 : -1;
   return {
-    x: LANE_CENTER_X + side * (W / 2 - 70 + gameRandom() * 60),
-    y: (y !== undefined) ? y : groundStart + gameRandom() * 20,
-    type: gameRandom() > 0.3 ? 'tree' : 'bush',
-    scale: 0.5 + gameRandom() * 0.5,
+    x: LANE_CENTER_X + side * (W / 2 - 70 + Math.random() * 60),
+    y: (y !== undefined) ? y : groundStart + Math.random() * 20,
+    type: Math.random() > 0.3 ? 'tree' : 'bush',
+    scale: 0.5 + Math.random() * 0.5,
     side: side,
   };
 }
@@ -1087,6 +1097,8 @@ function createBgElement(y) {
 let spawnTimer = 0;
 let plushieSpawnTimer = 0;
 let chaserSpawnTimer = 0;
+let nextSpawnThreshold = 0;
+let nextPlushieThreshold = 0;
 
 function spawnObstacle() {
   const lane = Math.floor(gameRandom() * LANE_COUNT);
@@ -1338,14 +1350,16 @@ function update(dt) {
   // Early game has much wider gaps; tightens over time
   const spawnGap = Math.max(170, 290 - distance * 1.14);
   spawnTimer += gameSpeed * f;
-  if (spawnTimer > spawnGap + gameRandom() * 80) {
+  if (spawnTimer > spawnGap + nextSpawnThreshold) {
     spawnTimer = 0;
+    nextSpawnThreshold = gameRandom() * 80;
     spawnObstacle();
   }
 
   plushieSpawnTimer += gameSpeed * f;
-  if (plushieSpawnTimer > 200 + gameRandom() * 100) {
+  if (plushieSpawnTimer > nextPlushieThreshold) {
     plushieSpawnTimer = 0;
+    nextPlushieThreshold = 200 + gameRandom() * 100;
     spawnPlushie();
   }
 
@@ -4431,7 +4445,18 @@ function gameLoop(timestamp) {
   lastTime = timestamp;
 
   initAudio();
-  update(deltaTime);
+
+  // Daily challenge: fixed time step for deterministic gameplay
+  if (isDailyChallenge && gameState === 'playing') {
+    timeAccumulator += deltaTime;
+    while (timeAccumulator >= FIXED_DT) {
+      update(FIXED_DT);
+      timeAccumulator -= FIXED_DT;
+    }
+  } else {
+    update(deltaTime);
+  }
+
   checkSounds();
   draw();
 
