@@ -570,8 +570,21 @@ document.addEventListener('keydown', (e) => {
 const mobileNameInput = document.getElementById('mobileNameInput');
 
 if (mobileNameInput) {
-  mobileNameInput.addEventListener('input', () => {
+  // IME composition guard — Gboard fires input events with transient/reordered
+  // values during composition. We skip those and only read the final value.
+  let isComposing = false;
+  mobileNameInput.addEventListener('compositionstart', () => { isComposing = true; });
+  mobileNameInput.addEventListener('compositionend', () => {
+    isComposing = false;
     if (gameState !== 'name') return;
+    let val = mobileNameInput.value.replace(/[^a-zA-Z0-9 _\-.]/g, '').substring(0, 15);
+    mobileNameInput.value = val;
+    playerName = val;
+  });
+
+  mobileNameInput.addEventListener('input', (e) => {
+    if (gameState !== 'name') return;
+    if (e.isComposing || isComposing) return; // Skip during IME composition
     // Filter to allowed characters and limit length
     let val = mobileNameInput.value.replace(/[^a-zA-Z0-9 _\-.]/g, '').substring(0, 15);
     mobileNameInput.value = val;
@@ -2871,6 +2884,7 @@ function drawNameScreen() {
   ctx.fillStyle = playerName.length > 0 ? '#fff' : '#555';
   ctx.font = 'bold 24px Arial';
   ctx.textAlign = 'center';
+  ctx.direction = 'ltr';
   const displayText = playerName.length > 0 ? playerName : 'type here...';
   ctx.fillText(displayText, W / 2, boxY + 33);
 
@@ -3181,6 +3195,7 @@ function drawMenuScreen() {
   ctx.fillText('Playing as', W / 2, H * 0.235);
   ctx.fillStyle = '#fbbf24';
   ctx.font = 'bold 16px Arial';
+  ctx.direction = 'ltr';
   ctx.fillText(playerName, W / 2, H * 0.26);
 
   // Streak display
@@ -3556,6 +3571,7 @@ function drawShareScreen() {
   ty += 26;
   ctx.fillStyle = '#e4e4e7';
   ctx.font = '15px Arial';
+  ctx.direction = 'ltr';
   ctx.fillText(playerName, cardX, ty);
 
   // Title badge — use middle baseline for proper centering
