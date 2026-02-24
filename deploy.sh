@@ -17,8 +17,8 @@ sed -i '' "s|game\.js?v=[^\"]*|game.js?v=$VERSION|g" index.html
 
 echo "Cache bust: game.js?v=$VERSION"
 
-# Stage, commit, push
-git add -A
+# Stage all tracked changes + new files (respects .gitignore)
+git add .
 git commit -m "$1"
 git push origin main
 
