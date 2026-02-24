@@ -187,6 +187,122 @@ async function submitScore(name, scoreVal, distVal, plushiesVal) {
 }
 
 // ============================================================
+// DAILY CHALLENGE STATE
+// ============================================================
+let isDailyChallenge = false;
+let dailySeedDate = '';    // 'YYYY-MM-DD'
+let dailyDayNumber = 0;   // days since launch
+let dailyLeaderboardData = [];
+let dailyLeaderboardLoading = false;
+let dailyLeaderboardLastFetch = 0;
+let dailyStats = null;
+
+// Launch date for daily numbering
+const DAILY_LAUNCH_DATE = new Date('2026-02-25');
+
+function getDailySeedDate() {
+  var d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
+
+function getDailyDayNumber() {
+  var now = new Date();
+  now.setHours(0, 0, 0, 0);
+  var launch = new Date(DAILY_LAUNCH_DATE);
+  launch.setHours(0, 0, 0, 0);
+  return Math.max(1, Math.floor((now - launch) / 86400000) + 1);
+}
+
+// ============================================================
+// SEEDED PRNG (mulberry32)
+// ============================================================
+let seededRng = null;
+
+function mulberry32(seed) {
+  var s = seed | 0;
+  return function() {
+    s = (s + 0x6D2B79F5) | 0;
+    var t = Math.imul(s ^ (s >>> 15), 1 | s);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function hashDateString(str) {
+  var hash = 0;
+  for (var i = 0; i < str.length; i++) {
+    hash = ((hash << 5) - hash + str.charCodeAt(i)) | 0;
+  }
+  return hash;
+}
+
+// Use this instead of Math.random() for all gameplay-affecting randomness
+function gameRandom() {
+  if (isDailyChallenge && seededRng) return seededRng();
+  return Math.random();
+}
+
+// ============================================================
+// DAILY LEADERBOARD FUNCTIONS
+// ============================================================
+async function fetchDailyLeaderboard() {
+  if (!supabaseClient) return;
+  if (dailyLeaderboardLoading) return;
+  if (Date.now() - dailyLeaderboardLastFetch < LEADERBOARD_CACHE_MS && dailyLeaderboardData.length > 0) return;
+
+  dailyLeaderboardLoading = true;
+  try {
+    var dateStr = getDailySeedDate();
+    var { data, error } = await supabaseClient.rpc('get_daily_leaderboard', {
+      p_date: dateStr,
+      p_platform: detectedPlatform
+    });
+    if (!error && data) {
+      dailyLeaderboardData = data;
+      dailyLeaderboardLastFetch = Date.now();
+    }
+  } catch (e) {
+    console.warn('Daily leaderboard fetch failed:', e);
+  }
+  dailyLeaderboardLoading = false;
+}
+
+async function fetchDailyStats() {
+  if (!supabaseClient) return;
+  try {
+    var dateStr = getDailySeedDate();
+    var { data, error } = await supabaseClient.rpc('get_daily_stats', { p_date: dateStr });
+    if (!error && data && data.length > 0) {
+      dailyStats = data[0];
+    }
+  } catch (e) {
+    console.warn('Daily stats fetch failed:', e);
+  }
+}
+
+async function submitDailyScore(name, scoreVal, distVal, plushiesVal) {
+  if (!supabaseClient) return;
+  try {
+    await supabaseClient
+      .from('daily_leaderboard')
+      .insert([{
+        name: name.substring(0, 20),
+        score: scoreVal,
+        distance: distVal,
+        plushies: plushiesVal,
+        platform: detectedPlatform,
+        seed_date: dailySeedDate
+      }]);
+    // Force refresh
+    dailyLeaderboardLastFetch = 0;
+    fetchDailyLeaderboard();
+    fetchDailyStats();
+  } catch (e) {
+    console.warn('Daily score submit failed:', e);
+  }
+}
+
+// ============================================================
 // PLAYER NAME
 // ============================================================
 let playerName = localStorage.getItem('punchPlayerName') || '';
@@ -396,7 +512,18 @@ document.addEventListener('keydown', (e) => {
   }
 
   if (gameState === 'menu') {
-    if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyR') startGame();
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = W / rect.width;
+    const scaleY = H / rect.height;
+    const touch = e.touches[0];
+    const tapX = (touch.clientX - rect.left) * scaleX;
+    const tapY = (touch.clientY - rect.top) * scaleY;
+    // Daily challenge button: centered at (W/2, H * 0.87), size 200x36
+    if (tapY > H * 0.87 - 18 && tapY < H * 0.87 + 18 && tapX > W/2 - 100 && tapX < W/2 + 100) {
+      startDailyGame();
+    } else {
+      startNormalGame();
+    }
     return;
   }
   if (gameState === 'gameover') {
@@ -503,7 +630,8 @@ canvas.addEventListener('touchstart', (e) => {
     return;
   }
   if (gameState === 'menu') {
-    startGame();
+    if (e.code === 'KeyD') { startDailyGame(); return; }
+    if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyR') startNormalGame();
     return;
   }
   if (gameState === 'gameover') {
@@ -612,7 +740,17 @@ canvas.addEventListener('click', (e) => {
     return;
   }
   if (gameState === 'menu') {
-    startGame();
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = W / rect.width;
+    const scaleY = H / rect.height;
+    const clickX = (e.clientX - rect.left) * scaleX;
+    const clickY = (e.clientY - rect.top) * scaleY;
+    // Daily challenge button: centered at (W/2, H * 0.87), size 200x36
+    if (clickY > H * 0.87 - 18 && clickY < H * 0.87 + 18 && clickX > W/2 - 100 && clickX < W/2 + 100) {
+      startDailyGame();
+    } else {
+      startNormalGame();
+    }
     return;
   }
   if (gameState === 'gameover') {
@@ -724,6 +862,16 @@ function startGame() {
 
   // Update play streak
   updatePlayStreak();
+
+  // Initialize seeded PRNG for daily challenge
+  if (isDailyChallenge) {
+    dailySeedDate = getDailySeedDate();
+    dailyDayNumber = getDailyDayNumber();
+    seededRng = mulberry32(hashDateString(dailySeedDate));
+  } else {
+    seededRng = null;
+  }
+
   score = 0;
   plushiesCollected = 0;
   gameSpeed = INITIAL_GAME_SPEED;
@@ -782,8 +930,22 @@ function startGame() {
 
   // Initialize background elements
   for (let i = 0; i < 8; i++) {
-    bgElements.push(createBgElement(Math.random() * H));
+    bgElements.push(createBgElement(gameRandom() * H));
   }
+}
+
+function startNormalGame() {
+  isDailyChallenge = false;
+  startGame();
+}
+
+function startDailyGame() {
+  isDailyChallenge = true;
+  startGame();
+  // Pre-fetch daily leaderboard for game over screen
+  dailyLeaderboardLastFetch = 0;
+  fetchDailyLeaderboard();
+  fetchDailyStats();
 }
 
 function getLaneX(lane) {
@@ -791,13 +953,13 @@ function getLaneX(lane) {
 }
 
 function createBgElement(y) {
-  const side = Math.random() > 0.5 ? 1 : -1;
+  const side = gameRandom() > 0.5 ? 1 : -1;
   const groundStart = HORIZON;
   return {
-    x: LANE_CENTER_X + side * (W / 2 - 70 + Math.random() * 60),
-    y: (y !== undefined) ? y : groundStart + Math.random() * 20,
-    type: Math.random() > 0.3 ? 'tree' : 'bush',
-    scale: 0.5 + Math.random() * 0.5,
+    x: LANE_CENTER_X + side * (W / 2 - 70 + gameRandom() * 60),
+    y: (y !== undefined) ? y : groundStart + gameRandom() * 20,
+    type: gameRandom() > 0.3 ? 'tree' : 'bush',
+    scale: 0.5 + gameRandom() * 0.5,
     side: side,
   };
 }
@@ -810,13 +972,13 @@ let plushieSpawnTimer = 0;
 let chaserSpawnTimer = 0;
 
 function spawnObstacle() {
-  const lane = Math.floor(Math.random() * LANE_COUNT);
+  const lane = Math.floor(gameRandom() * LANE_COUNT);
   // Early game only spawns simple rocks; harder types unlock over distance
   let types = ['rock'];
   if (distance > 10) types.push('boulder');
   if (distance > 26) types.push('rock_tall');
   if (distance > 44) types.push('log');
-  const type = types[Math.floor(Math.random() * types.length)];
+  const type = types[Math.floor(gameRandom() * types.length)];
 
   let w, h, requireJump, requireRoll;
   switch (type) {
@@ -835,7 +997,7 @@ function spawnObstacle() {
   }
 
   // Sometimes spawn double obstacle (2 lanes blocked) - only later in game
-  const doDouble = Math.random() < 0.18 && distance > 50;
+  const doDouble = gameRandom() < 0.18 && distance > 50;
   const spawnY = HORIZON; // spawn at the horizon, same depth as background trees
   const obs = [{
     x: getLaneX(lane),
@@ -851,7 +1013,7 @@ function spawnObstacle() {
 
   if (doDouble) {
     let lane2 = lane;
-    while (lane2 === lane) lane2 = Math.floor(Math.random() * LANE_COUNT);
+    while (lane2 === lane) lane2 = Math.floor(gameRandom() * LANE_COUNT);
     obs.push({
       x: getLaneX(lane2),
       y: spawnY,
@@ -869,9 +1031,9 @@ function spawnObstacle() {
 
   // Chance to spawn a plushie on top of an obstacle (rewards jumping)
   for (const o of obs) {
-    if (Math.random() < 0.25) {
+    if (gameRandom() < 0.25) {
       const shades = ['#E85530', '#D94A28', '#F06040', '#CC4020'];
-      const shade = shades[Math.floor(Math.random() * shades.length)];
+      const shade = shades[Math.floor(gameRandom() * shades.length)];
       plushies.push({
         x: o.x,
         y: o.y - o.height - 20, // positioned above the obstacle
@@ -879,7 +1041,7 @@ function spawnObstacle() {
         type: 'monkey_plush',
         color: shade,
         collected: false,
-        bobPhase: Math.random() * Math.PI * 2,
+        bobPhase: gameRandom() * Math.PI * 2,
         scale: 1,
         attachedToObstacle: true, // moves with obstacle
         obstacleRef: o,
@@ -889,15 +1051,15 @@ function spawnObstacle() {
 }
 
 function spawnPlushie() {
-  const lane = Math.floor(Math.random() * LANE_COUNT);
+  const lane = Math.floor(gameRandom() * LANE_COUNT);
   // All plushies are orange-red monkey plushies
   // Slight color variations for visual interest
   const shades = ['#E85530', '#D94A28', '#F06040', '#CC4020'];
-  const shade = shades[Math.floor(Math.random() * shades.length)];
+  const shade = shades[Math.floor(gameRandom() * shades.length)];
 
   // Sometimes spawn a line of plushies (rare)
   const plushieSpawnY = HORIZON; // spawn at the horizon, same depth as background trees
-  const count = Math.random() < 0.15 ? (2 + Math.floor(Math.random() * 3)) : 1;
+  const count = gameRandom() < 0.15 ? (2 + Math.floor(gameRandom() * 3)) : 1;
   for (let i = 0; i < count; i++) {
     plushies.push({
       x: getLaneX(lane),
@@ -906,7 +1068,7 @@ function spawnPlushie() {
       type: 'monkey_plush',
       color: shade,
       collected: false,
-      bobPhase: Math.random() * Math.PI * 2,
+      bobPhase: gameRandom() * Math.PI * 2,
       scale: 1,
     });
   }
@@ -1059,13 +1221,13 @@ function update(dt) {
   // Early game has much wider gaps; tightens over time
   const spawnGap = Math.max(170, 290 - distance * 1.14);
   spawnTimer += gameSpeed * f;
-  if (spawnTimer > spawnGap + Math.random() * 80) {
+  if (spawnTimer > spawnGap + gameRandom() * 80) {
     spawnTimer = 0;
     spawnObstacle();
   }
 
   plushieSpawnTimer += gameSpeed * f;
-  if (plushieSpawnTimer > 200 + Math.random() * 100) {
+  if (plushieSpawnTimer > 200 + gameRandom() * 100) {
     plushieSpawnTimer = 0;
     spawnPlushie();
   }
@@ -1345,7 +1507,11 @@ function gameOver() {
 
   // Submit score to leaderboard
   if (playerName && score > 0) {
-    submitScore(playerName, score, Math.round(distance * 10) / 10, plushiesCollected);
+    if (isDailyChallenge) {
+      submitDailyScore(playerName, score, Math.round(distance * 10) / 10, plushiesCollected);
+    } else {
+      submitScore(playerName, score, Math.round(distance * 10) / 10, plushiesCollected);
+    }
     // Signal panel leaderboard to refresh
     setTimeout(function() { window.dispatchEvent(new Event('leaderboardUpdated')); }, 1500);
   }
@@ -2600,6 +2766,26 @@ function drawHUD() {
       ctx.fillRect(barX, barY, barW * (1 - player.recoveryTimer / 8000), barH);
     }
   }
+
+  // Daily challenge badge
+  if (isDailyChallenge) {
+    ctx.save();
+    ctx.textAlign = 'right';
+    ctx.fillStyle = 'rgba(251, 191, 36, 0.15)';
+    var badgeText = 'DAILY #' + dailyDayNumber;
+    var badgeW = 80;
+    roundRect(ctx, W - badgeW - 10, 40, badgeW, 18, 9);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(251, 191, 36, 0.4)';
+    ctx.lineWidth = 1;
+    roundRect(ctx, W - badgeW - 10, 40, badgeW, 18, 9);
+    ctx.stroke();
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 10px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText(badgeText, W - badgeW / 2 - 10, 53);
+    ctx.restore();
+  }
 }
 
 // ============================================================
@@ -2824,6 +3010,109 @@ function drawLeaderboard(startY, compact) {
 }
 
 // ============================================================
+// DAILY LEADERBOARD DRAWING HELPER
+// ============================================================
+function drawDailyLeaderboard(startY, compact) {
+  const lbX = W / 2;
+  const rowH = compact ? 22 : 26;
+  const titleSize = compact ? 14 : 16;
+  const rowSize = compact ? 13 : 15;
+
+  // Title
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = 'bold ' + titleSize + 'px Arial';
+  ctx.textAlign = 'center';
+  var platformLabel = detectedPlatform === 'mobile' ? 'MOBILE' : 'PC';
+  ctx.fillText('DAILY #' + dailyDayNumber + ' · ' + platformLabel, lbX, startY);
+
+  let y = startY + rowH + 4;
+
+  if (!dailyLeaderboardData || dailyLeaderboardData.length === 0) {
+    ctx.fillStyle = '#555';
+    ctx.font = rowSize + 'px Arial';
+    ctx.fillText(dailyLeaderboardLoading ? 'Loading...' : 'No scores yet — be the first!', lbX, y);
+    y += rowH;
+    // Daily stats summary
+    if (dailyStats && dailyStats.total_players > 0) {
+      y += 4;
+      ctx.fillStyle = '#666';
+      ctx.font = '11px Arial';
+      ctx.fillText(dailyStats.total_players + ' players today · avg ' + Math.round(dailyStats.avg_score).toLocaleString(), lbX, y);
+      y += rowH;
+    }
+    return y;
+  }
+
+  // Column headers — swap DATE for DIST since all are today
+  ctx.fillStyle = '#666';
+  ctx.font = 'bold ' + (rowSize - 1) + 'px Arial';
+  ctx.textAlign = 'left';
+  ctx.fillText('#', lbX - 120, y);
+  ctx.fillText('PLAYER', lbX - 100, y);
+  ctx.textAlign = 'center';
+  ctx.fillText('DIST', lbX + 30, y);
+  ctx.textAlign = 'right';
+  ctx.fillText('SCORE', lbX + 130, y);
+  y += rowH;
+
+  for (let i = 0; i < dailyLeaderboardData.length && i < 10; i++) {
+    const entry = dailyLeaderboardData[i];
+    const isMe = entry.name === playerName;
+
+    // Highlight current player's entries
+    if (isMe) {
+      ctx.fillStyle = 'rgba(251, 191, 36, 0.1)';
+      roundRect(ctx, lbX - 130, y - rowH + 6, 260, rowH, 4);
+      ctx.fill();
+    }
+
+    // Rank
+    ctx.textAlign = 'left';
+    if (i === 0) ctx.fillStyle = '#fbbf24';      // gold
+    else if (i === 1) ctx.fillStyle = '#c0c0c0';  // silver
+    else if (i === 2) ctx.fillStyle = '#cd7f32';   // bronze
+    else ctx.fillStyle = isMe ? '#fbbf24' : '#888';
+
+    ctx.font = 'bold ' + rowSize + 'px Arial';
+    ctx.fillText((i + 1) + '.', lbX - 120, y);
+
+    // Name
+    ctx.fillStyle = isMe ? '#fbbf24' : '#ccc';
+    ctx.font = (isMe ? 'bold ' : '') + rowSize + 'px Arial';
+    const name = entry.name.length > 10 ? entry.name.substring(0, 10) + '..' : entry.name;
+    ctx.fillText(name, lbX - 100, y);
+
+    // Distance (instead of date)
+    ctx.textAlign = 'center';
+    ctx.fillStyle = isMe ? 'rgba(251, 191, 36, 0.6)' : '#666';
+    ctx.font = (compact ? 10 : 11) + 'px Arial';
+    if (entry.distance != null) {
+      ctx.fillText(Math.floor(entry.distance) + 'm', lbX + 30, y);
+    }
+
+    // Score
+    ctx.textAlign = 'right';
+    ctx.fillStyle = isMe ? '#fbbf24' : '#aaa';
+    ctx.font = 'bold ' + rowSize + 'px Arial';
+    ctx.fillText(entry.score.toLocaleString(), lbX + 130, y);
+
+    y += rowH;
+  }
+
+  // Daily stats summary below leaderboard
+  if (dailyStats && dailyStats.total_players > 0) {
+    y += 4;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#666';
+    ctx.font = '11px Arial';
+    ctx.fillText(dailyStats.total_players + ' players today · avg score ' + Math.round(dailyStats.avg_score).toLocaleString(), lbX, y);
+    y += rowH;
+  }
+
+  return y;
+}
+
+// ============================================================
 // MENU / GAME OVER SCREENS
 // ============================================================
 function drawMenuScreen() {
@@ -2923,12 +3212,12 @@ function drawMenuScreen() {
   ctx.restore();
 
   // Leaderboard
-  drawLeaderboard(H * 0.42, false);
+  drawLeaderboard(H * 0.40, false);
 
   // Start button
   const pulse = 1 + Math.sin(Date.now() * 0.005) * 0.05;
   ctx.save();
-  ctx.translate(W / 2, H * 0.83);
+  ctx.translate(W / 2, H * 0.78);
   ctx.scale(pulse, pulse);
 
   ctx.fillStyle = COLORS.punchRed;
@@ -2945,11 +3234,32 @@ function drawMenuScreen() {
   ctx.fillText('TAP TO START', 0, 0);
   ctx.restore();
 
-  // "or press R" hint for desktop
-  ctx.fillStyle = 'rgba(255,255,255,0.45)';
-  ctx.font = '13px Arial';
+  // Daily challenge button
+  var dayNum = getDailyDayNumber();
+  ctx.save();
+  ctx.translate(W / 2, H * 0.87);
+
+  // Button background — golden outline style
+  ctx.strokeStyle = '#fbbf24';
+  ctx.lineWidth = 2;
+  roundRect(ctx, -100, -18, 200, 36, 18);
+  ctx.stroke();
+  ctx.fillStyle = 'rgba(251, 191, 36, 0.1)';
+  roundRect(ctx, -100, -18, 200, 36, 18);
+  ctx.fill();
+
+  ctx.fillStyle = '#fbbf24';
+  ctx.font = 'bold 14px Arial';
   ctx.textAlign = 'center';
-  ctx.fillText('or press R to restart', W / 2, H * 0.83 + 36);
+  ctx.textBaseline = 'middle';
+  ctx.fillText('DAILY CHALLENGE #' + dayNum, 0, 0);
+  ctx.restore();
+
+  // Hint text
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.font = '11px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillText('press D for daily  \u00B7  R to play', W / 2, H * 0.87 + 38);
 
   // Community stats roll-up display
   var entries = getStatEntries();
@@ -2971,7 +3281,7 @@ function drawMenuScreen() {
     var current = entries[currentIdx];
     var next = entries[nextIdx];
 
-    var baseY = H * 0.935;
+    var baseY = H * 0.955;
     var rollDist = 30; // pixels to roll
 
     ctx.save();
@@ -3053,7 +3363,10 @@ function getPlayerTitle(s, d, p) {
 
 function buildShareText() {
   var title = getPlayerTitle(score, distance, plushiesCollected);
-  return 'Punch, the Monkey\n\n'
+  var header = isDailyChallenge
+    ? 'Punch, the Monkey · Daily #' + dailyDayNumber + '\n\n'
+    : 'Punch, the Monkey\n\n';
+  return header
     + title + '\n'
     + 'Score: ' + score.toLocaleString() + '\n'
     + 'Distance: ' + Math.floor(distance) + 'm\n'
@@ -3123,6 +3436,23 @@ function drawShareScreen() {
   ctx.fillStyle = COLORS.punchRed;
   ctx.font = 'bold 22px Arial';
   ctx.fillText('PUNCH, THE MONKEY', cardX, ty);
+
+  // Daily challenge badge on share card
+  if (isDailyChallenge) {
+    ty += 22;
+    ctx.fillStyle = 'rgba(251, 191, 36, 0.15)';
+    var dailyLabel = 'DAILY #' + dailyDayNumber;
+    var dailyBadgeW = 100;
+    roundRect(ctx, cardX - dailyBadgeW / 2, ty - 12, dailyBadgeW, 20, 10);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(251, 191, 36, 0.5)';
+    ctx.lineWidth = 1;
+    roundRect(ctx, cardX - dailyBadgeW / 2, ty - 12, dailyBadgeW, 20, 10);
+    ctx.stroke();
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 12px Arial';
+    ctx.fillText(dailyLabel, cardX, ty + 2);
+  }
 
   // Divider
   ty += 20;
@@ -3261,12 +3591,21 @@ function drawGameOverScreen() {
   ctx.textAlign = 'center';
 
   // Game Over text
-  ctx.fillStyle = COLORS.punchRed;
-  ctx.font = 'bold 40px Arial';
-  ctx.fillText('CAUGHT!', W / 2, H * 0.08);
-  ctx.fillStyle = '#ccc';
-  ctx.font = '16px Arial';
-  ctx.fillText('The evil monkeys got Punch...', W / 2, H * 0.11);
+  if (isDailyChallenge) {
+    ctx.fillStyle = '#fbbf24';
+    ctx.font = 'bold 36px Arial';
+    ctx.fillText('DAILY #' + dailyDayNumber, W / 2, H * 0.08);
+    ctx.fillStyle = '#ccc';
+    ctx.font = '16px Arial';
+    ctx.fillText('The evil monkeys got Punch...', W / 2, H * 0.11);
+  } else {
+    ctx.fillStyle = COLORS.punchRed;
+    ctx.font = 'bold 40px Arial';
+    ctx.fillText('CAUGHT!', W / 2, H * 0.08);
+    ctx.fillStyle = '#ccc';
+    ctx.font = '16px Arial';
+    ctx.fillText('The evil monkeys got Punch...', W / 2, H * 0.11);
+  }
 
   // Knocked out baby monkey (smaller)
   ctx.save();
@@ -3368,8 +3707,12 @@ function drawGameOverScreen() {
     ctx.restore();
   }
 
-  // Leaderboard
-  drawLeaderboard(H * 0.37, true);
+  // Leaderboard — show daily or normal based on mode
+  if (isDailyChallenge) {
+    drawDailyLeaderboard(H * 0.37, true);
+  } else {
+    drawLeaderboard(H * 0.37, true);
+  }
 
   // Buttons row
   const pulse = 1 + Math.sin(Date.now() * 0.005) * 0.03;

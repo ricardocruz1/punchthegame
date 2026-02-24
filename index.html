@@ -336,6 +336,50 @@
     border-bottom-color: #fbbf24;
   }
 
+  /* ---------- LEADERBOARD MODE TABS (Global / Daily) ---------- */
+  .lb-mode-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 10px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+    padding: 3px;
+  }
+  .lb-mode-tab {
+    flex: 1;
+    padding: 6px 0;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #666;
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    background: none;
+    font-family: inherit;
+    transition: color 0.2s, background 0.2s;
+  }
+  .lb-mode-tab:hover {
+    color: #999;
+  }
+  .lb-mode-tab.active {
+    color: #fbbf24;
+    background: rgba(251, 191, 36, 0.12);
+  }
+  .lb-daily-header {
+    text-align: center;
+    padding: 6px 0 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fbbf24;
+  }
+  .lb-daily-stats {
+    text-align: center;
+    padding: 6px 0 0;
+    font-size: 11px;
+    color: #666;
+  }
+
   /* ---------- GLOBAL STATS (batched cycling grid) ---------- */
   .global-stats {
     position: relative;
@@ -867,13 +911,32 @@
     </div>
 
     <div class="panel-card leaderboard-card">
-      <h3>Global Leaderboard</h3>
-      <div class="lb-tabs">
-        <button class="lb-tab active" data-target="panelLeaderboard" data-platform="pc" onclick="switchLbTab(this)">PC</button>
-        <button class="lb-tab" data-target="panelLeaderboard" data-platform="mobile" onclick="switchLbTab(this)">Mobile</button>
+      <h3>Leaderboard</h3>
+      <div class="lb-mode-tabs">
+        <button class="lb-mode-tab active" data-mode="global" data-container="panelLbContainer" onclick="switchLbMode(this)">Global</button>
+        <button class="lb-mode-tab" data-mode="daily" data-container="panelLbContainer" onclick="switchLbMode(this)">Daily</button>
       </div>
-      <div id="panelLeaderboard" class="panel-leaderboard">
-        <div class="lb-loading">Loading...</div>
+      <div id="panelLbContainer">
+        <div class="lb-global-view">
+          <div class="lb-tabs">
+            <button class="lb-tab active" data-target="panelLeaderboard" data-platform="pc" onclick="switchLbTab(this)">PC</button>
+            <button class="lb-tab" data-target="panelLeaderboard" data-platform="mobile" onclick="switchLbTab(this)">Mobile</button>
+          </div>
+          <div id="panelLeaderboard" class="panel-leaderboard">
+            <div class="lb-loading">Loading...</div>
+          </div>
+        </div>
+        <div class="lb-daily-view" style="display:none;">
+          <div class="lb-daily-header" id="panelDailyHeader"></div>
+          <div class="lb-tabs">
+            <button class="lb-tab active" data-target="panelDailyLeaderboard" data-platform="pc" data-daily="true" onclick="switchDailyLbTab(this)">PC</button>
+            <button class="lb-tab" data-target="panelDailyLeaderboard" data-platform="mobile" data-daily="true" onclick="switchDailyLbTab(this)">Mobile</button>
+          </div>
+          <div id="panelDailyLeaderboard" class="panel-leaderboard">
+            <div class="lb-loading">Loading...</div>
+          </div>
+          <div class="lb-daily-stats" id="panelDailyStats"></div>
+        </div>
       </div>
     </div>
 
@@ -1031,13 +1094,32 @@
   </div>
 
   <div class="panel-card leaderboard-card">
-    <h3>Global Leaderboard</h3>
-    <div class="lb-tabs">
-      <button class="lb-tab" data-target="mobileLeaderboard" data-platform="pc" onclick="switchLbTab(this)">PC</button>
-      <button class="lb-tab active" data-target="mobileLeaderboard" data-platform="mobile" onclick="switchLbTab(this)">Mobile</button>
+    <h3>Leaderboard</h3>
+    <div class="lb-mode-tabs">
+      <button class="lb-mode-tab active" data-mode="global" data-container="mobileLbContainer" onclick="switchLbMode(this)">Global</button>
+      <button class="lb-mode-tab" data-mode="daily" data-container="mobileLbContainer" onclick="switchLbMode(this)">Daily</button>
     </div>
-    <div id="mobileLeaderboard" class="panel-leaderboard">
-      <div class="lb-loading">Loading...</div>
+    <div id="mobileLbContainer">
+      <div class="lb-global-view">
+        <div class="lb-tabs">
+          <button class="lb-tab" data-target="mobileLeaderboard" data-platform="pc" onclick="switchLbTab(this)">PC</button>
+          <button class="lb-tab active" data-target="mobileLeaderboard" data-platform="mobile" onclick="switchLbTab(this)">Mobile</button>
+        </div>
+        <div id="mobileLeaderboard" class="panel-leaderboard">
+          <div class="lb-loading">Loading...</div>
+        </div>
+      </div>
+      <div class="lb-daily-view" style="display:none;">
+        <div class="lb-daily-header" id="mobileDailyHeader"></div>
+        <div class="lb-tabs">
+          <button class="lb-tab" data-target="mobileDailyLeaderboard" data-platform="pc" data-daily="true" onclick="switchDailyLbTab(this)">PC</button>
+          <button class="lb-tab active" data-target="mobileDailyLeaderboard" data-platform="mobile" data-daily="true" onclick="switchDailyLbTab(this)">Mobile</button>
+        </div>
+        <div id="mobileDailyLeaderboard" class="panel-leaderboard">
+          <div class="lb-loading">Loading...</div>
+        </div>
+        <div class="lb-daily-stats" id="mobileDailyStats"></div>
+      </div>
     </div>
   </div>
 </div>
@@ -1218,9 +1300,8 @@ window.addEventListener('highScoreUpdated', updateDonateGate);
       el.innerHTML = '<div class="lb-loading">No scores yet. Be the first!</div>';
       return;
     }
-    var half = Math.ceil(data.length / 2);
-    var left = data.slice(0, half);
-    var right = data.slice(half);
+    var isMobile = containerId.indexOf('mobile') === 0;
+    var entries = isMobile ? data.slice(0, 10) : data;
 
     function entryHTML(row, i) {
       var dateStr = '';
@@ -1237,12 +1318,21 @@ window.addEventListener('highScoreUpdated', updateDonateGate);
         + '</div>';
     }
 
-    el.innerHTML = '<div class="lb-col">' + left.map(function(row, i) {
-      return entryHTML(row, i);
-    }).join('') + '</div>'
-    + '<div class="lb-col">' + right.map(function(row, i) {
-      return entryHTML(row, i + half);
-    }).join('') + '</div>';
+    if (isMobile) {
+      el.innerHTML = '<div class="lb-col">' + entries.map(function(row, i) {
+        return entryHTML(row, i);
+      }).join('') + '</div>';
+    } else {
+      var half = Math.ceil(entries.length / 2);
+      var left = entries.slice(0, half);
+      var right = entries.slice(half);
+      el.innerHTML = '<div class="lb-col">' + left.map(function(row, i) {
+        return entryHTML(row, i);
+      }).join('') + '</div>'
+      + '<div class="lb-col">' + right.map(function(row, i) {
+        return entryHTML(row, i + half);
+      }).join('') + '</div>';
+    }
   }
 
   async function fetchPlatformLeaderboard(platform) {
@@ -1290,17 +1380,195 @@ window.addEventListener('highScoreUpdated', updateDonateGate);
     }
   };
 
+  // ============================================================
+  // DAILY LEADERBOARD (panel)
+  // ============================================================
+  var DAILY_LAUNCH_DATE = new Date('2026-02-25');
+  var dailyPanelCache = { pc: null, mobile: null };
+  var dailyPanelStats = null;
+
+  // Track which daily platform tab is active per container
+  var activeDailyTab = {
+    panelDailyLeaderboard: 'pc',
+    mobileDailyLeaderboard: 'mobile'
+  };
+
+  function getDailySeedDatePanel() {
+    var now = new Date();
+    return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  }
+
+  function getDailyDayNumberPanel() {
+    var now = new Date();
+    now.setHours(0,0,0,0);
+    var launch = new Date(DAILY_LAUNCH_DATE);
+    launch.setHours(0,0,0,0);
+    return Math.max(1, Math.floor((now - launch) / 86400000) + 1);
+  }
+
+  function renderDailyLeaderboard(containerId, data) {
+    var el = document.getElementById(containerId);
+    if (!el) return;
+    if (!data || data.length === 0) {
+      el.innerHTML = '<div class="lb-loading">No daily scores yet. Be the first!</div>';
+      return;
+    }
+    var isMobile = containerId.indexOf('mobile') === 0;
+    var entries = isMobile ? data.slice(0, 10) : data;
+
+    function entryHTML(row, i) {
+      var distStr = row.distance != null ? Math.floor(row.distance) + 'm' : '';
+      return '<div class="lb-entry">'
+        + '<span class="lb-rank ' + rankClass(i) + '">' + (i + 1) + '.</span>'
+        + '<span class="lb-name">' + row.name.replace(/</g, '&lt;') + '</span>'
+        + '<span class="lb-date">' + distStr + '</span>'
+        + '<span class="lb-score">' + row.score.toLocaleString() + '</span>'
+        + '</div>';
+    }
+
+    if (isMobile) {
+      el.innerHTML = '<div class="lb-col">' + entries.map(function(row, i) {
+        return entryHTML(row, i);
+      }).join('') + '</div>';
+    } else {
+      var half = Math.ceil(entries.length / 2);
+      var left = entries.slice(0, half);
+      var right = entries.slice(half);
+      el.innerHTML = '<div class="lb-col">' + left.map(function(row, i) {
+        return entryHTML(row, i);
+      }).join('') + '</div>'
+      + '<div class="lb-col">' + right.map(function(row, i) {
+        return entryHTML(row, i + half);
+      }).join('') + '</div>';
+    }
+  }
+
+  function renderDailyHeaders() {
+    var dayNum = getDailyDayNumberPanel();
+    var headers = document.querySelectorAll('.lb-daily-header');
+    headers.forEach(function(el) {
+      el.textContent = 'Daily Challenge #' + dayNum;
+    });
+  }
+
+  function renderDailyStatsPanel() {
+    var els = [document.getElementById('panelDailyStats'), document.getElementById('mobileDailyStats')];
+    els.forEach(function(el) {
+      if (!el) return;
+      if (!dailyPanelStats || !dailyPanelStats.total_players) {
+        el.textContent = '';
+        return;
+      }
+      var s = dailyPanelStats;
+      el.textContent = s.total_players + ' player' + (s.total_players !== 1 ? 's' : '') + ' today · avg score ' + Math.round(s.avg_score).toLocaleString();
+    });
+  }
+
+  async function fetchDailyPanelLeaderboard() {
+    var dateStr = getDailySeedDatePanel();
+    async function fetchPlatform(platform) {
+      try {
+        var { data, error } = await sb.rpc('get_daily_leaderboard', { p_date: dateStr, p_platform: platform });
+        if (!error && data) {
+          dailyPanelCache[platform] = data;
+        }
+      } catch(e) {
+        console.warn('Daily panel leaderboard fetch failed (' + platform + '):', e);
+      }
+    }
+    await Promise.all([fetchPlatform('pc'), fetchPlatform('mobile')]);
+    // Render whichever tab is active for each container
+    renderDailyLeaderboard('panelDailyLeaderboard', dailyPanelCache[activeDailyTab.panelDailyLeaderboard]);
+    renderDailyLeaderboard('mobileDailyLeaderboard', dailyPanelCache[activeDailyTab.mobileDailyLeaderboard]);
+  }
+
+  async function fetchDailyPanelStats() {
+    var dateStr = getDailySeedDatePanel();
+    try {
+      var { data, error } = await sb.rpc('get_daily_stats', { p_date: dateStr });
+      if (!error && data) {
+        dailyPanelStats = Array.isArray(data) ? data[0] : data;
+      }
+    } catch(e) {
+      console.warn('Daily panel stats fetch failed:', e);
+    }
+    renderDailyStatsPanel();
+  }
+
+  async function fetchAllDailyPanel() {
+    renderDailyHeaders();
+    await Promise.all([fetchDailyPanelLeaderboard(), fetchDailyPanelStats()]);
+  }
+
+  // Mode tab switching (Global / Daily)
+  window.switchLbMode = function(btn) {
+    var mode = btn.getAttribute('data-mode');
+    var containerId = btn.getAttribute('data-container');
+    var container = document.getElementById(containerId);
+    if (!container) return;
+
+    // Update tab styles
+    var tabs = btn.parentElement.querySelectorAll('.lb-mode-tab');
+    tabs.forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+
+    // Toggle views
+    var globalView = container.querySelector('.lb-global-view');
+    var dailyView = container.querySelector('.lb-daily-view');
+    if (mode === 'daily') {
+      if (globalView) globalView.style.display = 'none';
+      if (dailyView) dailyView.style.display = '';
+      // Fetch daily data if not cached
+      if (!dailyPanelCache.pc && !dailyPanelCache.mobile) {
+        fetchAllDailyPanel();
+      }
+    } else {
+      if (globalView) globalView.style.display = '';
+      if (dailyView) dailyView.style.display = 'none';
+    }
+  };
+
+  // Daily platform tab switching (PC / Mobile within daily view)
+  window.switchDailyLbTab = function(btn) {
+    var platform = btn.getAttribute('data-platform');
+    var target = btn.getAttribute('data-target');
+    // Update active tab state
+    activeDailyTab[target] = platform;
+    // Update tab button styles
+    var tabs = btn.parentElement.querySelectorAll('.lb-tab');
+    tabs.forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+    // Render from cache
+    if (dailyPanelCache[platform]) {
+      renderDailyLeaderboard(target, dailyPanelCache[platform]);
+    } else {
+      var el = document.getElementById(target);
+      if (el) el.innerHTML = '<div class="lb-loading">Loading...</div>';
+      fetchDailyPanelLeaderboard().then(function() {
+        renderDailyLeaderboard(target, dailyPanelCache[platform]);
+      });
+    }
+  };
+
   // Fetch on load
   fetchAllLeaderboards();
+  fetchAllDailyPanel(); // pre-fetch daily data too
 
   // Refresh after each game over (game.js dispatches these)
   window.addEventListener('highScoreUpdated', function() {
     setTimeout(fetchAllLeaderboards, 1500);
+    setTimeout(fetchAllDailyPanel, 1500);
   });
-  window.addEventListener('leaderboardUpdated', fetchAllLeaderboards);
+  window.addEventListener('leaderboardUpdated', function() {
+    fetchAllLeaderboards();
+    fetchAllDailyPanel();
+  });
 
   // Also refresh every 60s
-  setInterval(fetchAllLeaderboards, 60000);
+  setInterval(function() {
+    fetchAllLeaderboards();
+    fetchAllDailyPanel();
+  }, 60000);
 
   // ============================================================
   // GLOBAL STATS BATCHED CYCLING (grid pages, roll-up transition)
