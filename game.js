@@ -532,6 +532,7 @@ document.addEventListener('keydown', (e) => {
   if (gameState === 'gameover') {
     if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyR') startGame();
     if (e.code === 'KeyS') { gameState = 'share'; shareButtonFlash = 0; }
+    if (e.code === 'KeyD') { if (isDailyChallenge) { startNormalGame(); } else { startDailyGame(); } }
     return;
   }
   if (gameState === 'share') {
@@ -692,13 +693,28 @@ canvas.addEventListener('touchstart', (e) => {
     const tapX = (touch.clientX - rect.left) * scaleX;
     const tapY = (touch.clientY - rect.top) * scaleY;
     const btnY = detectedPlatform === 'mobile' ? H * 0.73 : H * 0.88;
-    // Share button
-    if (tapY > btnY - 20 && tapY < btnY + 20 && tapX > W/2 - 120 && tapX < W/2 - 10) {
-      // On mobile, trigger native share directly
-      triggerShare();
-      return;
+    const btnW = detectedPlatform === 'mobile' ? 85 : 95;
+    const btnGap = detectedPlatform === 'mobile' ? 8 : 12;
+    const totalW = btnW * 3 + btnGap * 2;
+    const btnStartX = W / 2 - totalW / 2;
+    if (tapY > btnY - 20 && tapY < btnY + 20) {
+      // Share button
+      if (tapX > btnStartX && tapX < btnStartX + btnW) {
+        triggerShare();
+        return;
+      }
+      // Mode-switch button (center)
+      if (tapX > btnStartX + btnW + btnGap && tapX < btnStartX + btnW * 2 + btnGap) {
+        if (isDailyChallenge) { startNormalGame(); } else { startDailyGame(); }
+        return;
+      }
+      // Retry button
+      if (tapX > btnStartX + btnW * 2 + btnGap * 2 && tapX < btnStartX + totalW) {
+        startGame();
+        return;
+      }
     }
-    // Retry or anywhere else
+    // Tap anywhere else = retry same mode
     startGame();
     return;
   }
@@ -842,13 +858,29 @@ canvas.addEventListener('click', (e) => {
     const clickX = (e.clientX - rect.left) * scaleX;
     const clickY = (e.clientY - rect.top) * scaleY;
     const btnY = detectedPlatform === 'mobile' ? H * 0.73 : H * 0.88;
-    // Share button: centered at (W/2 - 65, btnY), size 110x40
-    if (clickY > btnY - 20 && clickY < btnY + 20 && clickX > W/2 - 120 && clickX < W/2 - 10) {
-      gameState = 'share';
-      shareButtonFlash = 0;
-      return;
+    const btnW = detectedPlatform === 'mobile' ? 85 : 95;
+    const btnGap = detectedPlatform === 'mobile' ? 8 : 12;
+    const totalW = btnW * 3 + btnGap * 2;
+    const btnStartX = W / 2 - totalW / 2;
+    if (clickY > btnY - 20 && clickY < btnY + 20) {
+      // Share button
+      if (clickX > btnStartX && clickX < btnStartX + btnW) {
+        gameState = 'share';
+        shareButtonFlash = 0;
+        return;
+      }
+      // Mode-switch button (center)
+      if (clickX > btnStartX + btnW + btnGap && clickX < btnStartX + btnW * 2 + btnGap) {
+        if (isDailyChallenge) { startNormalGame(); } else { startDailyGame(); }
+        return;
+      }
+      // Retry button
+      if (clickX > btnStartX + btnW * 2 + btnGap * 2 && clickX < btnStartX + totalW) {
+        startGame();
+        return;
+      }
     }
-    // Retry button or anywhere else: restart
+    // Click anywhere else: restart same mode
     startGame();
     return;
   }
@@ -3356,10 +3388,9 @@ function drawMenuScreen() {
     var btnW = 120;
     var btnH = 44;
 
-    // PLAY button (left)
+    // CLASSIC button (left)
     ctx.save();
     ctx.translate(W / 2 - btnW / 2 - gap / 2, btnY);
-    ctx.scale(pulse, pulse);
     ctx.fillStyle = COLORS.punchRed;
     roundRect(ctx, -btnW / 2, -btnH / 2, btnW, btnH, 22);
     ctx.fill();
@@ -3370,22 +3401,21 @@ function drawMenuScreen() {
     ctx.font = 'bold 18px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('PLAY', 0, 0);
+    ctx.fillText('CLASSIC MODE', 0, 0);
     ctx.restore();
 
-    // DAILY button (right)
+    // DAILY button (right) — solid golden fill, pulsing to draw attention
     ctx.save();
     ctx.translate(W / 2 + btnW / 2 + gap / 2, btnY);
     ctx.scale(pulse, pulse);
-    ctx.strokeStyle = '#fbbf24';
-    ctx.lineWidth = 2;
-    roundRect(ctx, -btnW / 2, -btnH / 2, btnW, btnH, 22);
-    ctx.stroke();
-    ctx.fillStyle = 'rgba(251, 191, 36, 0.1)';
+    ctx.fillStyle = '#fbbf24';
     roundRect(ctx, -btnW / 2, -btnH / 2, btnW, btnH, 22);
     ctx.fill();
-    ctx.fillStyle = '#fbbf24';
-    ctx.font = 'bold 13px Arial';
+    ctx.fillStyle = '#d4a017';
+    roundRect(ctx, -btnW / 2, 0, btnW, btnH / 2, { bl: 22, br: 22, tl: 0, tr: 0 });
+    ctx.fill();
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = 'bold 15px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('DAILY #' + dayNum, 0, 0);
@@ -3396,10 +3426,9 @@ function drawMenuScreen() {
   } else {
     // ---- DESKTOP: original stacked layout ----
 
-    // Start button
+    // Start button (CLASSIC — no pulse)
     ctx.save();
     ctx.translate(W / 2, H * 0.78);
-    ctx.scale(pulse, pulse);
 
     ctx.fillStyle = COLORS.punchRed;
     roundRect(ctx, -80, -22, 160, 44, 22);
@@ -3412,24 +3441,23 @@ function drawMenuScreen() {
     ctx.font = 'bold 20px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('TAP TO START', 0, 0);
+    ctx.fillText('CLASSIC MODE', 0, 0);
     ctx.restore();
 
-    // Daily challenge button
+    // Daily challenge button — solid golden fill, pulsing to draw attention
     ctx.save();
     ctx.translate(W / 2, H * 0.87);
-
-    // Button background — golden outline style
-    ctx.strokeStyle = '#fbbf24';
-    ctx.lineWidth = 2;
-    roundRect(ctx, -100, -18, 200, 36, 18);
-    ctx.stroke();
-    ctx.fillStyle = 'rgba(251, 191, 36, 0.1)';
-    roundRect(ctx, -100, -18, 200, 36, 18);
-    ctx.fill();
+    ctx.scale(pulse, pulse);
 
     ctx.fillStyle = '#fbbf24';
-    ctx.font = 'bold 14px Arial';
+    roundRect(ctx, -100, -18, 200, 36, 18);
+    ctx.fill();
+    ctx.fillStyle = '#d4a017';
+    roundRect(ctx, -100, 0, 200, 18, { bl: 18, br: 18, tl: 0, tr: 0 });
+    ctx.fill();
+
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = 'bold 15px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText('DAILY CHALLENGE #' + dayNum, 0, 0);
@@ -3439,7 +3467,7 @@ function drawMenuScreen() {
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.font = '11px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('press D for daily  \u00B7  R to play  \u00B7  M to toggle music', W / 2, H * 0.87 + 38);
+    ctx.fillText('press D for daily  \u00B7  R for classic mode  \u00B7  M to toggle music', W / 2, H * 0.87 + 38);
 
     // Community stats roll-up display
     var entries = getStatEntries();
@@ -3902,36 +3930,75 @@ function drawGameOverScreen() {
     drawLeaderboard(H * 0.37, true);
   }
 
-  // Buttons row
+  // Buttons row — 3 buttons: SHARE, mode-switch (DAILY/PLAY), RETRY
   const pulse = 1 + Math.sin(Date.now() * 0.005) * 0.03;
   const btnY = detectedPlatform === 'mobile' ? H * 0.73 : H * 0.88;
+  const btnW = detectedPlatform === 'mobile' ? 85 : 95;
+  const btnH = 40;
+  const btnGap = detectedPlatform === 'mobile' ? 8 : 12;
+  const totalW = btnW * 3 + btnGap * 2;
+  const btnStartX = W / 2 - totalW / 2;
 
   // Share button (left)
   ctx.save();
-  ctx.translate(W / 2 - 65, btnY);
+  ctx.translate(btnStartX + btnW / 2, btnY);
   ctx.scale(pulse, pulse);
   ctx.fillStyle = '#fbbf24';
-  roundRect(ctx, -55, -20, 110, 40, 20);
+  roundRect(ctx, -btnW / 2, -btnH / 2, btnW, btnH, 20);
   ctx.fill();
   ctx.fillStyle = '#1a1a2e';
-  ctx.font = 'bold 15px Arial';
+  ctx.font = 'bold 14px Arial';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('SHARE', 0, 0);
   ctx.restore();
 
+  // Mode-switch button (center) — DAILY if in normal, PLAY if in daily
+  ctx.save();
+  ctx.translate(btnStartX + btnW * 1.5 + btnGap, btnY);
+  ctx.scale(pulse, pulse);
+  if (isDailyChallenge) {
+    // Show "CLASSIC MODE" to switch to endless
+    ctx.fillStyle = COLORS.punchRed;
+    roundRect(ctx, -btnW / 2, -btnH / 2, btnW, btnH, 20);
+    ctx.fill();
+    ctx.fillStyle = '#CC3333';
+    roundRect(ctx, -btnW / 2, 0, btnW, btnH / 2, { bl: 20, br: 20, tl: 0, tr: 0 });
+    ctx.fill();
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold 11px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('CLASSIC MODE', 0, 0);
+  } else {
+    // Show "DAILY" to switch to daily challenge
+    ctx.fillStyle = '#fbbf24';
+    roundRect(ctx, -btnW / 2, -btnH / 2, btnW, btnH, 20);
+    ctx.fill();
+    ctx.fillStyle = '#d4a017';
+    roundRect(ctx, -btnW / 2, 0, btnW, btnH / 2, { bl: 20, br: 20, tl: 0, tr: 0 });
+    ctx.fill();
+    ctx.fillStyle = '#1a1a1a';
+    ctx.font = 'bold 14px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    var dayNum = getDailyDayNumber();
+    ctx.fillText('DAILY #' + dayNum, 0, 0);
+  }
+  ctx.restore();
+
   // Retry button (right)
   ctx.save();
-  ctx.translate(W / 2 + 65, btnY);
+  ctx.translate(btnStartX + btnW * 2.5 + btnGap * 2, btnY);
   ctx.scale(pulse, pulse);
   ctx.fillStyle = COLORS.punchRed;
-  roundRect(ctx, -55, -20, 110, 40, 20);
+  roundRect(ctx, -btnW / 2, -btnH / 2, btnW, btnH, 20);
   ctx.fill();
   ctx.fillStyle = '#CC3333';
-  roundRect(ctx, -55, 0, 110, 20, { bl: 20, br: 20, tl: 0, tr: 0 });
+  roundRect(ctx, -btnW / 2, 0, btnW, btnH / 2, { bl: 20, br: 20, tl: 0, tr: 0 });
   ctx.fill();
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 15px Arial';
+  ctx.font = 'bold 14px Arial';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText('RETRY', 0, 0);
@@ -3942,7 +4009,7 @@ function drawGameOverScreen() {
     ctx.fillStyle = 'rgba(255,255,255,0.45)';
     ctx.font = '13px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('or press R to restart', W / 2, btnY + 36);
+    ctx.fillText('press R to retry  \u00B7  D for ' + (isDailyChallenge ? 'classic mode' : 'daily'), W / 2, btnY + 36);
   }
 
   // Music icon on game over screen
