@@ -672,7 +672,7 @@ canvas.addEventListener('touchstart', (e) => {
     const tapY = (touch.clientY - rect.top) * scaleY;
     // Side-by-side layout: PLAY (left) and DAILY (right) at H * 0.78
     var mbtnY = H * 0.78;
-    var mbtnW = 120;
+    var mbtnW = 140;
     var mgap = 12;
     var mbtnH = 44;
     var dailyLeft = W/2 + mgap/2;
@@ -695,7 +695,7 @@ canvas.addEventListener('touchstart', (e) => {
     const tapX = (touch.clientX - rect.left) * scaleX;
     const tapY = (touch.clientY - rect.top) * scaleY;
     const btnY = detectedPlatform === 'mobile' ? H * 0.73 : H * 0.88;
-    const btnW = detectedPlatform === 'mobile' ? 85 : 95;
+    const btnW = detectedPlatform === 'mobile' ? 95 : 105;
     const btnGap = detectedPlatform === 'mobile' ? 8 : 12;
     const totalW = btnW * 3 + btnGap * 2;
     const btnStartX = W / 2 - totalW / 2;
@@ -829,7 +829,7 @@ canvas.addEventListener('click', (e) => {
     if (detectedPlatform === 'mobile') {
       // Side-by-side layout: PLAY (left) and DAILY (right) at H * 0.78
       var mbtnY = H * 0.78;
-      var mbtnW = 120;
+      var mbtnW = 140;
       var mgap = 12;
       var mbtnH = 44;
       var playLeft = W/2 - mbtnW - mgap/2;
@@ -860,7 +860,7 @@ canvas.addEventListener('click', (e) => {
     const clickX = (e.clientX - rect.left) * scaleX;
     const clickY = (e.clientY - rect.top) * scaleY;
     const btnY = detectedPlatform === 'mobile' ? H * 0.73 : H * 0.88;
-    const btnW = detectedPlatform === 'mobile' ? 85 : 95;
+    const btnW = detectedPlatform === 'mobile' ? 95 : 105;
     const btnGap = detectedPlatform === 'mobile' ? 8 : 12;
     const totalW = btnW * 3 + btnGap * 2;
     const btnStartX = W / 2 - totalW / 2;
@@ -3399,7 +3399,7 @@ function drawMenuScreen() {
     // ---- MOBILE: side-by-side PLAY (left) and DAILY (right) ----
     var btnY = H * 0.78;
     var gap = 12;
-    var btnW = 120;
+    var btnW = 140;
     var btnH = 44;
 
     // CLASSIC button (left)
@@ -3445,10 +3445,10 @@ function drawMenuScreen() {
     ctx.translate(W / 2, H * 0.78);
 
     ctx.fillStyle = COLORS.punchRed;
-    roundRect(ctx, -80, -22, 160, 44, 22);
+    roundRect(ctx, -100, -22, 200, 44, 22);
     ctx.fill();
     ctx.fillStyle = '#CC3333';
-    roundRect(ctx, -80, 0, 160, 22, { bl: 22, br: 22, tl: 0, tr: 0 });
+    roundRect(ctx, -100, 0, 200, 22, { bl: 22, br: 22, tl: 0, tr: 0 });
     ctx.fill();
 
     ctx.fillStyle = '#fff';
@@ -3947,7 +3947,7 @@ function drawGameOverScreen() {
   // Buttons row — 3 buttons: SHARE, mode-switch (DAILY/PLAY), RETRY
   const pulse = 1 + Math.sin(Date.now() * 0.005) * 0.03;
   const btnY = detectedPlatform === 'mobile' ? H * 0.73 : H * 0.88;
-  const btnW = detectedPlatform === 'mobile' ? 85 : 95;
+  const btnW = detectedPlatform === 'mobile' ? 95 : 105;
   const btnH = 40;
   const btnGap = detectedPlatform === 'mobile' ? 8 : 12;
   const totalW = btnW * 3 + btnGap * 2;
