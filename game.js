@@ -257,6 +257,16 @@ let lastTime = 0;
 let deltaTime = 0;
 let shakeAmount = 0;
 let flashAlpha = 0;
+let newRecordTriggered = false;
+
+// Death recap tracking
+let obstaclesDodged = 0;
+let survivalStartTime = 0;
+let topSpeedReached = 0;
+
+// Streak system
+let playStreak = parseInt(localStorage.getItem('punchStreak') || '0');
+let lastPlayDate = localStorage.getItem('punchLastPlayDate') || '';
 
 // ============================================================
 // PLAYER
@@ -679,17 +689,53 @@ function roll() {
 }
 
 // ============================================================
+// STREAK SYSTEM
+// ============================================================
+function getDateString(date) {
+  return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+}
+
+function updatePlayStreak() {
+  var today = getDateString(new Date());
+  var yesterday = getDateString(new Date(Date.now() - 86400000));
+
+  if (lastPlayDate === today) {
+    // Already played today, streak unchanged
+    return;
+  } else if (lastPlayDate === yesterday) {
+    // Played yesterday — increment streak
+    playStreak++;
+  } else {
+    // Missed a day or first time — reset to 1
+    playStreak = 1;
+  }
+
+  lastPlayDate = today;
+  localStorage.setItem('punchStreak', playStreak.toString());
+  localStorage.setItem('punchLastPlayDate', today);
+}
+
+// ============================================================
 // GAME MANAGEMENT
 // ============================================================
 function startGame() {
   gameState = 'playing';
   updateRestartButton();
+
+  // Update play streak
+  updatePlayStreak();
   score = 0;
   plushiesCollected = 0;
   gameSpeed = INITIAL_GAME_SPEED;
   distance = 0;
   frameCount = 0;
   shakeAmount = 0;
+
+  // Reset per-run tracking
+  newRecordTriggered = false;
+  obstaclesDodged = 0;
+  survivalStartTime = Date.now();
+  topSpeedReached = INITIAL_GAME_SPEED;
 
   player.lane = 1;
   player.targetLane = 1;
@@ -924,6 +970,30 @@ function update(dt) {
   score += Math.floor(gameSpeed * player.multiplier * f);
   gameSpeed = Math.min(MAX_GAME_SPEED, INITIAL_GAME_SPEED + distance * SPEED_INCREMENT);
 
+  // Track top speed for death recap
+  if (gameSpeed > topSpeedReached) topSpeedReached = gameSpeed;
+
+  // New record detection (during gameplay)
+  if (!newRecordTriggered && highScore > 0 && score > highScore) {
+    newRecordTriggered = true;
+    // Gold confetti burst
+    for (let i = 0; i < 25; i++) {
+      particles.push({
+        x: player.x + (Math.random() - 0.5) * 60,
+        y: player.y - player.height / 2 + (Math.random() - 0.5) * 40,
+        vx: (Math.random() - 0.5) * 8,
+        vy: -Math.random() * 6 - 2,
+        size: 2 + Math.random() * 3,
+        life: 1,
+        decay: 0.015 + Math.random() * 0.015,
+        color: ['#FFD700', '#FFA500', '#FFEF00', '#FFC107', '#fff'][Math.floor(Math.random() * 5)]
+      });
+    }
+    spawnFloatingText(player.x, player.y - 120, 'NEW BEST!', '#FFD700');
+    shakeAmount = 5;
+    playSound('powerup');
+  }
+
   // Player lane movement
   const targetX = getLaneX(player.targetLane);
   const dx = targetX - player.x;
@@ -1119,6 +1189,7 @@ function update(dt) {
 
     if (obs.y > LANE_Y_BASE + 20 && !obs.passed) {
       obs.passed = true;
+      obstaclesDodged++;
     }
 
     if (obs.y > H + 100) {
@@ -2785,6 +2856,18 @@ function drawMenuScreen() {
   ctx.font = 'bold 16px Arial';
   ctx.fillText(playerName, W / 2, H * 0.26);
 
+  // Streak display
+  if (playStreak >= 2) {
+    var flamePulse = 1 + Math.sin(Date.now() * 0.006) * 0.08;
+    ctx.save();
+    ctx.translate(W / 2, H * 0.29);
+    ctx.scale(flamePulse, flamePulse);
+    ctx.font = 'bold 14px Arial';
+    ctx.fillStyle = '#FF6B35';
+    ctx.fillText('\uD83D\uDD25 ' + playStreak + ' day streak', 0, 0);
+    ctx.restore();
+  }
+
   // Animated monkey preview - smaller to fit leaderboard
   ctx.save();
   ctx.translate(W / 2, H * 0.33);
@@ -3263,6 +3346,27 @@ function drawGameOverScreen() {
   ctx.fillStyle = '#aaa';
   ctx.fillText('PLUSHIES', W / 2 + 120, statsY + 16);
 
+  // Death recap row
+  const recapY = statsY + 36;
+  const survivalSecs = Math.floor((Date.now() - survivalStartTime) / 1000);
+  const topSpeedDisplay = Math.round(topSpeedReached * 10) / 10;
+
+  ctx.font = '12px Arial';
+  ctx.fillStyle = '#777';
+  ctx.fillText('Survived ' + survivalSecs + 's', W / 2 - 110, recapY);
+  ctx.fillText('Dodged ' + obstaclesDodged, W / 2, recapY);
+  ctx.fillText('Top speed ' + topSpeedDisplay.toFixed(1), W / 2 + 110, recapY);
+
+  // New record indicator
+  if (newRecordTriggered) {
+    var nrPulse = 0.7 + Math.sin(Date.now() * 0.008) * 0.3;
+    ctx.save();
+    ctx.globalAlpha = nrPulse;
+    ctx.fillStyle = '#FFD700';
+    ctx.font = 'bold 14px Arial';
+    ctx.fillText('NEW PERSONAL BEST!', W / 2, recapY + 28);
+    ctx.restore();
+  }
 
   // Leaderboard
   drawLeaderboard(H * 0.37, true);
