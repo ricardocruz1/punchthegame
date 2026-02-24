@@ -512,38 +512,8 @@ document.addEventListener('keydown', (e) => {
   }
 
   if (gameState === 'menu') {
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = W / rect.width;
-    const scaleY = H / rect.height;
-    const touch = e.touches[0];
-    const tapX = (touch.clientX - rect.left) * scaleX;
-    const tapY = (touch.clientY - rect.top) * scaleY;
-    // Daily challenge button / Play button
-    if (detectedPlatform === 'mobile') {
-      // Side-by-side layout: PLAY (left) and DAILY (right) at H * 0.78
-      var mbtnY = H * 0.78;
-      var mbtnW = 120;
-      var mgap = 12;
-      var mbtnH = 44;
-      var playLeft = W/2 - mbtnW - mgap/2;
-      var dailyLeft = W/2 + mgap/2;
-      if (tapY > mbtnY - mbtnH/2 && tapY < mbtnY + mbtnH/2) {
-        if (tapX > dailyLeft && tapX < dailyLeft + mbtnW) {
-          startDailyGame();
-        } else {
-          startNormalGame();
-        }
-      } else {
-        startNormalGame();
-      }
-    } else {
-      // Desktop: Daily button at (W/2, H * 0.87), size 200x36
-      if (tapY > H * 0.87 - 18 && tapY < H * 0.87 + 18 && tapX > W/2 - 100 && tapX < W/2 + 100) {
-        startDailyGame();
-      } else {
-        startNormalGame();
-      }
-    }
+    if (e.code === 'KeyD') { startDailyGame(); return; }
+    if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyR') { startNormalGame(); return; }
     return;
   }
   if (gameState === 'gameover') {
@@ -680,7 +650,7 @@ canvas.addEventListener('touchstart', (e) => {
     const scaleY = H / rect.height;
     const tapX = (touch.clientX - rect.left) * scaleX;
     const tapY = (touch.clientY - rect.top) * scaleY;
-    const btnY = H * 0.88;
+    const btnY = detectedPlatform === 'mobile' ? H * 0.73 : H * 0.88;
     // Share button
     if (tapY > btnY - 20 && tapY < btnY + 20 && tapX > W/2 - 120 && tapX < W/2 - 10) {
       // On mobile, trigger native share directly
@@ -818,7 +788,7 @@ canvas.addEventListener('click', (e) => {
     const scaleY = H / rect.height;
     const clickX = (e.clientX - rect.left) * scaleX;
     const clickY = (e.clientY - rect.top) * scaleY;
-    const btnY = H * 0.88;
+    const btnY = detectedPlatform === 'mobile' ? H * 0.73 : H * 0.88;
     // Share button: centered at (W/2 - 65, btnY), size 110x40
     if (clickY > btnY - 20 && clickY < btnY + 20 && clickX > W/2 - 120 && clickX < W/2 - 10) {
       gameState = 'share';
@@ -2808,17 +2778,18 @@ function drawHUD() {
     ctx.fillRect(0, 0, W, H);
 
     // "DANGER" text and recovery bar
+    var dangerY = detectedPlatform === 'mobile' ? 75 : H - 30;
     ctx.fillStyle = `rgba(255,68,68,${dangerPulse})`;
     ctx.font = 'bold 14px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('DANGER - MONKEYS CLOSING IN!', W / 2, H - 30);
+    ctx.fillText('DANGER - MONKEYS CLOSING IN!', W / 2, dangerY);
 
     // Recovery timer bar
     if (player.recoveryTimer > 0) {
       const barW = 120;
       const barH = 6;
       const barX = W / 2 - barW / 2;
-      const barY = H - 18;
+      const barY = dangerY + 8;
       ctx.fillStyle = 'rgba(255,255,255,0.2)';
       ctx.fillRect(barX, barY, barW, barH);
       ctx.fillStyle = '#4CAF50';
@@ -3449,6 +3420,7 @@ function getShareCardLayout() {
   var cardTop = H * 0.06;
   // Must match the spacing in drawShareScreen()
   var contentH = 40 + 20 + 26 + 26 + 68 + 56 + 40 + 20 + 22 + 20 + 18;
+  if (isDailyChallenge) contentH += 22; // daily badge adds 22px
   var cardH = contentH + 24;
   var btnY = cardTop + cardH + 30;
   return { cardTop: cardTop, cardH: cardH, btnY: btnY };
@@ -3826,7 +3798,7 @@ function drawGameOverScreen() {
 
   // Buttons row
   const pulse = 1 + Math.sin(Date.now() * 0.005) * 0.03;
-  const btnY = H * 0.88;
+  const btnY = detectedPlatform === 'mobile' ? H * 0.73 : H * 0.88;
 
   // Share button (left)
   ctx.save();
@@ -3859,11 +3831,13 @@ function drawGameOverScreen() {
   ctx.fillText('RETRY', 0, 0);
   ctx.restore();
 
-  // "or press R" hint for desktop
-  ctx.fillStyle = 'rgba(255,255,255,0.45)';
-  ctx.font = '13px Arial';
-  ctx.textAlign = 'center';
-  ctx.fillText('or press R to restart', W / 2, btnY + 36);
+  // "or press R" hint for desktop only
+  if (detectedPlatform !== 'mobile') {
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.font = '13px Arial';
+    ctx.textAlign = 'center';
+    ctx.fillText('or press R to restart', W / 2, btnY + 36);
+  }
 }
 
 function roundRect(ctx, x, y, w, h, r) {
