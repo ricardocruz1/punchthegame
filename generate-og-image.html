@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>OG Image Generator - Punch, the Monkey</title>
+<style>
+body { background: #222; color: #fff; font-family: Arial; text-align: center; padding: 20px; }
+canvas { border: 1px solid #555; max-width: 100%; }
+p { margin: 10px 0; color: #aaa; }
+a { color: #fbbf24; }
+</style>
+</head>
+<body>
+<h2>OG Image Preview (1200x630)</h2>
+<p>Right-click the image below and "Save Image As..." → save as <strong>og-image.png</strong> in your project folder.</p>
+<canvas id="c" width="1200" height="630"></canvas>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const W = 1200, H = 630;
+
+// Colors from game
+const COLORS = {
+  monkey: '#C4A87A',
+  monkeyLight: '#D8C4A0',
+  monkeyDark: '#8A7A5E',
+  monkeyFace: '#FFD8B8',
+  monkeyFaceLight: '#FFE8D0',
+  monkeyEar: '#E8B890',
+  enemyMonkey: '#8B3A1A',
+  enemyMonkeyDark: '#4D1E0A',
+  enemyMonkeyFace: '#D08050',
+  tree: '#4A3020',
+  leaves: '#3CC74E',
+  plushie: '#FF6B35',
+};
+
+// --- SKY ---
+const skyGrad = ctx.createLinearGradient(0, 0, 0, H * 0.55);
+skyGrad.addColorStop(0, '#1a1a3e');
+skyGrad.addColorStop(0.5, '#2E86AB');
+skyGrad.addColorStop(1, '#87CEEB');
+ctx.fillStyle = skyGrad;
+ctx.fillRect(0, 0, W, H * 0.55);
+
+// --- MOUNTAINS ---
+const mBase = H * 0.55;
+const mTop = mBase * 0.4;
+
+ctx.fillStyle = '#3a5a3a';
+ctx.beginPath();
+ctx.moveTo(0, mBase);
+ctx.lineTo(W * 0.1, mBase - (mBase - mTop) * 0.45);
+ctx.lineTo(W * 0.2, mBase - (mBase - mTop) * 0.15);
+ctx.lineTo(W * 0.32, mBase - (mBase - mTop) * 0.6);
+ctx.lineTo(W * 0.45, mBase - (mBase - mTop) * 0.25);
+ctx.lineTo(W * 0.58, mBase - (mBase - mTop) * 0.75);
+ctx.lineTo(W * 0.72, mBase - (mBase - mTop) * 0.35);
+ctx.lineTo(W * 0.85, mBase - (mBase - mTop) * 0.5);
+ctx.lineTo(W, mBase - (mBase - mTop) * 0.2);
+ctx.lineTo(W, mBase);
+ctx.fill();
+
+ctx.fillStyle = '#2d4a2d';
+ctx.beginPath();
+ctx.moveTo(0, mBase + 5);
+ctx.lineTo(W * 0.15, mBase - (mBase - mTop) * 0.15);
+ctx.lineTo(W * 0.35, mBase - (mBase - mTop) * 0.05);
+ctx.lineTo(W * 0.5, mBase - (mBase - mTop) * 0.2);
+ctx.lineTo(W * 0.7, mBase - (mBase - mTop) * 0.08);
+ctx.lineTo(W * 0.9, mBase - (mBase - mTop) * 0.18);
+ctx.lineTo(W, mBase);
+ctx.lineTo(W, mBase + 15);
+ctx.lineTo(0, mBase + 15);
+ctx.fill();
+
+// --- GROUND ---
+const groundGrad = ctx.createLinearGradient(0, mBase, 0, H);
+groundGrad.addColorStop(0, '#6B8E3C');
+groundGrad.addColorStop(0.3, '#5A7A30');
+groundGrad.addColorStop(1, '#4A6A25');
+ctx.fillStyle = groundGrad;
+ctx.fillRect(0, mBase, W, H - mBase);
+
+// --- ROCK PATH ---
+const pathLeft = W * 0.3;
+const pathRight = W * 0.7;
+ctx.fillStyle = 'rgba(0,0,0,0.15)';
+ctx.fillRect(pathLeft - 5, mBase, pathRight - pathLeft + 10, H - mBase);
+
+const pathGrad = ctx.createLinearGradient(pathLeft, 0, pathRight, 0);
+pathGrad.addColorStop(0, '#7a6b55');
+pathGrad.addColorStop(0.15, '#8B7355');
+pathGrad.addColorStop(0.5, '#9a8365');
+pathGrad.addColorStop(0.85, '#8B7355');
+pathGrad.addColorStop(1, '#7a6b55');
+ctx.fillStyle = pathGrad;
+ctx.fillRect(pathLeft, mBase, pathRight - pathLeft, H - mBase);
+
+// --- TREES (decorative sides) ---
+function drawTree(x, y, scale) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = COLORS.tree;
+  ctx.fillRect(-6, -40, 12, 40);
+  ctx.fillStyle = COLORS.leaves;
+  ctx.beginPath();
+  ctx.moveTo(0, -80);
+  ctx.lineTo(-25, -40);
+  ctx.lineTo(-15, -45);
+  ctx.lineTo(-30, -20);
+  ctx.lineTo(30, -20);
+  ctx.lineTo(15, -45);
+  ctx.lineTo(25, -40);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#3da83d';
+  ctx.beginPath();
+  ctx.moveTo(0, -80);
+  ctx.lineTo(-15, -50);
+  ctx.lineTo(5, -45);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawBush(x, y, scale) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = '#2d7a2d';
+  ctx.beginPath(); ctx.arc(0, -10, 18, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-12, -5, 14, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(12, -5, 14, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#3a9a3a';
+  ctx.beginPath(); ctx.arc(-3, -15, 8, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+// Draw scenery
+drawTree(80, mBase + 40, 1.8);
+drawTree(180, mBase + 20, 1.3);
+drawTree(W - 100, mBase + 30, 1.6);
+drawTree(W - 200, mBase + 15, 1.2);
+drawBush(140, mBase + 50, 1.5);
+drawBush(W - 140, mBase + 45, 1.4);
+drawBush(50, mBase + 60, 1.0);
+drawBush(W - 60, mBase + 55, 1.1);
+
+// --- DRAW PLUSHIE (floating on left side of Punch) ---
+function drawPlushie(px, py, sc) {
+  ctx.save();
+  ctx.translate(px, py);
+  ctx.scale(sc, sc);
+  const base = COLORS.plushie;
+
+  // Glow
+  ctx.shadowBlur = 18;
+  ctx.shadowColor = '#F07050';
+
+  // Tail
+  ctx.strokeStyle = base;
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(10, 12);
+  ctx.bezierCurveTo(18, 8, 22, 0, 18, -6);
+  ctx.bezierCurveTo(15, -10, 20, -14, 22, -10);
+  ctx.stroke();
+
+  // Body
+  ctx.fillStyle = base;
+  ctx.beginPath();
+  ctx.ellipse(0, 8, 11, 14, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Belly
+  ctx.fillStyle = '#F5A070';
+  ctx.beginPath();
+  ctx.ellipse(0, 10, 7, 9, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Legs
+  ctx.fillStyle = base;
+  ctx.beginPath(); ctx.ellipse(-6, 20, 5, 4, 0.3, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(6, 20, 5, 4, -0.3, 0, Math.PI * 2); ctx.fill();
+
+  // Arms
+  ctx.beginPath(); ctx.ellipse(-11, 6, 4, 7, 0.4, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(11, 6, 4, 7, -0.4, 0, Math.PI * 2); ctx.fill();
+
+  // Head
+  ctx.beginPath(); ctx.arc(0, -6, 10, 0, Math.PI * 2); ctx.fill();
+
+  // Ears
+  ctx.beginPath(); ctx.arc(-9, -10, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(9, -10, 5, 0, Math.PI * 2); ctx.fill();
+
+  // Inner ears
+  ctx.fillStyle = '#F5A070';
+  ctx.beginPath(); ctx.arc(-9, -10, 3, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(9, -10, 3, 0, Math.PI * 2); ctx.fill();
+
+  // Face
+  ctx.fillStyle = '#F5A070';
+  ctx.beginPath(); ctx.ellipse(0, -3, 7, 5.5, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Eyes
+  ctx.fillStyle = '#1a1a1a';
+  ctx.beginPath(); ctx.arc(-3, -5, 2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(3, -5, 2, 0, Math.PI * 2); ctx.fill();
+
+  // Eye shine
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(-2.3, -5.7, 0.8, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(3.7, -5.7, 0.8, 0, Math.PI * 2); ctx.fill();
+
+  // Nose
+  ctx.fillStyle = '#3a2a1a';
+  ctx.beginPath(); ctx.arc(0, -2.5, 1.5, 0, Math.PI * 2); ctx.fill();
+
+  // Smile
+  ctx.strokeStyle = '#3a2a1a';
+  ctx.lineWidth = 0.8;
+  ctx.beginPath(); ctx.arc(0, -1.5, 2.5, 0.2, Math.PI - 0.2); ctx.stroke();
+
+  ctx.shadowBlur = 0;
+  ctx.restore();
+}
+
+// --- DRAW PUNCH (center of image) ---
+function drawPunch(px, py, sc) {
+  ctx.save();
+  ctx.translate(px, py);
+  ctx.scale(sc, sc);
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.beginPath();
+  ctx.ellipse(0, 70, 18, 5, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Tail
+  ctx.strokeStyle = COLORS.monkeyDark;
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-10, 42);
+  ctx.bezierCurveTo(-25, 38, -32, 20, -28, 8);
+  ctx.bezierCurveTo(-24, -2, -18, -5, -14, 0);
+  ctx.stroke();
+
+  // Legs
+  ctx.fillStyle = COLORS.monkey;
+  // Left leg (running pose)
+  ctx.save();
+  ctx.translate(-7, 50);
+  ctx.rotate(-0.3);
+  ctx.beginPath(); ctx.ellipse(0, 8, 6, 10, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = COLORS.monkeyDark;
+  ctx.beginPath(); ctx.ellipse(2, 17, 7, 4, 0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  // Right leg
+  ctx.fillStyle = COLORS.monkey;
+  ctx.save();
+  ctx.translate(7, 50);
+  ctx.rotate(0.3);
+  ctx.beginPath(); ctx.ellipse(0, 8, 6, 10, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = COLORS.monkeyDark;
+  ctx.beginPath(); ctx.ellipse(-2, 17, 7, 4, -0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  // Body
+  ctx.fillStyle = COLORS.monkey;
+  ctx.beginPath();
+  ctx.ellipse(0, 36, 15, 18, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Belly
+  ctx.fillStyle = COLORS.monkeyLight;
+  ctx.beginPath();
+  ctx.ellipse(0, 38, 10, 13, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Arms
+  // Left arm (reaching back)
+  ctx.save();
+  ctx.translate(-13, 28);
+  ctx.rotate(0.4);
+  ctx.fillStyle = COLORS.monkey;
+  ctx.beginPath(); ctx.ellipse(0, 8, 5, 10, 0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = COLORS.monkeyDark;
+  ctx.beginPath(); ctx.arc(-1, 18, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  // Right arm (forward)
+  ctx.save();
+  ctx.translate(13, 28);
+  ctx.rotate(-0.4);
+  ctx.fillStyle = COLORS.monkey;
+  ctx.beginPath(); ctx.ellipse(0, 8, 5, 10, -0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = COLORS.monkeyDark;
+  ctx.beginPath(); ctx.arc(1, 18, 5, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  // Head
+  ctx.fillStyle = COLORS.monkey;
+  ctx.beginPath();
+  ctx.arc(0, 12, 18, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Fur tufts
+  ctx.fillStyle = COLORS.monkeyDark;
+  ctx.beginPath();
+  ctx.moveTo(-6, -5);
+  ctx.lineTo(-4, -10);
+  ctx.lineTo(-1, -6);
+  ctx.lineTo(2, -12);
+  ctx.lineTo(5, -6);
+  ctx.lineTo(7, -9);
+  ctx.lineTo(8, -4);
+  ctx.closePath();
+  ctx.fill();
+
+  // Face area
+  ctx.fillStyle = COLORS.monkeyFace;
+  ctx.beginPath();
+  ctx.ellipse(0, 15, 13, 11, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = COLORS.monkeyFaceLight;
+  ctx.beginPath();
+  ctx.ellipse(0, 16, 9, 7, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Ears
+  ctx.fillStyle = COLORS.monkey;
+  ctx.beginPath(); ctx.arc(-19, 10, 8, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = COLORS.monkeyEar;
+  ctx.beginPath(); ctx.arc(-19, 10, 5, 0, Math.PI * 2); ctx.fill();
+
+  ctx.fillStyle = COLORS.monkey;
+  ctx.beginPath(); ctx.arc(19, 10, 8, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = COLORS.monkeyEar;
+  ctx.beginPath(); ctx.arc(19, 10, 5, 0, Math.PI * 2); ctx.fill();
+
+  // Eyes
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.ellipse(-6, 11, 6, 6.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(6, 11, 6, 6.5, 0, 0, Math.PI * 2); ctx.fill();
+
+  ctx.fillStyle = '#1a1008';
+  ctx.beginPath(); ctx.arc(-5, 11, 4.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(7, 11, 4.5, 0, Math.PI * 2); ctx.fill();
+
+  // Eye shines
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(-3.5, 9.5, 2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(8.5, 9.5, 2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(-6, 13, 1, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(6, 13, 1, 0, Math.PI * 2); ctx.fill();
+
+  // Nose
+  ctx.fillStyle = COLORS.monkeyDark;
+  ctx.beginPath(); ctx.ellipse(0, 17, 2.5, 1.5, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Nostrils
+  ctx.fillStyle = '#5a4a3a';
+  ctx.beginPath(); ctx.arc(-1, 17, 0.8, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(1, 17, 0.8, 0, Math.PI * 2); ctx.fill();
+
+  // Mouth (worried)
+  ctx.fillStyle = '#8a5a4a';
+  ctx.beginPath(); ctx.ellipse(0, 20, 3, 2, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#6a3a2a';
+  ctx.beginPath(); ctx.ellipse(0, 20, 2, 1.2, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Worried eyebrows
+  ctx.strokeStyle = COLORS.monkeyDark;
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(-10, 4);
+  ctx.quadraticCurveTo(-6, 5.5, -2, 5);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(10, 4);
+  ctx.quadraticCurveTo(6, 5.5, 2, 5);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+// --- DRAW CHASER MONKEY ---
+function drawChaser(cx, cy, sc) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(sc, sc);
+
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.15)';
+  ctx.beginPath(); ctx.ellipse(0, 28, 14, 4, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Tail
+  ctx.strokeStyle = COLORS.enemyMonkeyDark;
+  ctx.lineWidth = 3;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-8, 18);
+  ctx.bezierCurveTo(-20, 14, -26, 2, -22, -8);
+  ctx.bezierCurveTo(-18, -16, -12, -18, -10, -14);
+  ctx.stroke();
+
+  // Legs
+  ctx.fillStyle = COLORS.enemyMonkey;
+  ctx.save();
+  ctx.translate(-6, 18);
+  ctx.rotate(-0.3);
+  ctx.beginPath(); ctx.ellipse(0, 6, 5, 8, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = COLORS.enemyMonkeyDark;
+  ctx.beginPath(); ctx.ellipse(2, 13, 6, 3, 0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  ctx.fillStyle = COLORS.enemyMonkey;
+  ctx.save();
+  ctx.translate(6, 18);
+  ctx.rotate(0.3);
+  ctx.beginPath(); ctx.ellipse(0, 6, 5, 8, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = COLORS.enemyMonkeyDark;
+  ctx.beginPath(); ctx.ellipse(-2, 13, 6, 3, -0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  // Body
+  ctx.fillStyle = COLORS.enemyMonkey;
+  ctx.beginPath(); ctx.ellipse(0, 8, 13, 15, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Belly
+  ctx.fillStyle = COLORS.enemyMonkeyFace;
+  ctx.beginPath(); ctx.ellipse(0, 10, 8, 10, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Arms (reaching forward aggressively)
+  ctx.save();
+  ctx.translate(-11, 0);
+  ctx.rotate(-0.5);
+  ctx.fillStyle = COLORS.enemyMonkey;
+  ctx.beginPath(); ctx.ellipse(0, 6, 4, 8, 0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = COLORS.enemyMonkeyDark;
+  ctx.beginPath(); ctx.arc(-1, 14, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  ctx.save();
+  ctx.translate(11, 0);
+  ctx.rotate(0.5);
+  ctx.fillStyle = COLORS.enemyMonkey;
+  ctx.beginPath(); ctx.ellipse(0, 6, 4, 8, -0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = COLORS.enemyMonkeyDark;
+  ctx.beginPath(); ctx.arc(1, 14, 4, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+
+  // Head
+  ctx.fillStyle = COLORS.enemyMonkey;
+  ctx.beginPath(); ctx.arc(0, -14, 15, 0, Math.PI * 2); ctx.fill();
+
+  // Fur tufts
+  ctx.fillStyle = COLORS.enemyMonkeyDark;
+  ctx.beginPath();
+  ctx.moveTo(-7, -27);
+  ctx.lineTo(-5, -34);
+  ctx.lineTo(-1, -28);
+  ctx.lineTo(3, -36);
+  ctx.lineTo(6, -28);
+  ctx.lineTo(9, -33);
+  ctx.lineTo(10, -26);
+  ctx.closePath();
+  ctx.fill();
+
+  // Ears
+  ctx.fillStyle = COLORS.enemyMonkey;
+  ctx.beginPath(); ctx.arc(-16, -16, 7, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(16, -16, 7, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = COLORS.enemyMonkeyFace;
+  ctx.beginPath(); ctx.arc(-16, -16, 4.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(16, -16, 4.5, 0, Math.PI * 2); ctx.fill();
+
+  // Face
+  ctx.fillStyle = COLORS.enemyMonkeyFace;
+  ctx.beginPath(); ctx.ellipse(0, -11, 11, 9, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#C89060';
+  ctx.beginPath(); ctx.ellipse(0, -10, 7.5, 6, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Eyes (angry red)
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.ellipse(-5, -15, 5, 5.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(5, -15, 5, 5.5, 0, 0, Math.PI * 2); ctx.fill();
+
+  ctx.fillStyle = '#CC0000';
+  ctx.beginPath(); ctx.arc(-4, -15, 3.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(6, -15, 3.5, 0, Math.PI * 2); ctx.fill();
+
+  ctx.fillStyle = '#1a0000';
+  ctx.beginPath(); ctx.arc(-4, -15, 1.8, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(6, -15, 1.8, 0, Math.PI * 2); ctx.fill();
+
+  // Eye shines
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(-2.8, -16.5, 1.2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(7.2, -16.5, 1.2, 0, Math.PI * 2); ctx.fill();
+
+  // Angry eyebrows
+  ctx.strokeStyle = COLORS.enemyMonkeyDark;
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(-10, -22); ctx.lineTo(-3, -19); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(10, -22); ctx.lineTo(3, -19); ctx.stroke();
+
+  // Nose
+  ctx.fillStyle = COLORS.enemyMonkeyDark;
+  ctx.beginPath(); ctx.ellipse(0, -9, 2, 1.3, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Mouth (snarling)
+  ctx.fillStyle = '#3a0a0a';
+  ctx.beginPath(); ctx.ellipse(0, -5, 5, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Teeth
+  ctx.fillStyle = '#f0f0e0';
+  ctx.fillRect(-4, -7, 2, 2.5);
+  ctx.fillRect(-1, -7, 2, 2.5);
+  ctx.fillRect(2, -7, 2, 2.5);
+
+  // Fangs
+  ctx.fillRect(-4.5, -7, 1.5, 3.5);
+  ctx.fillRect(3.5, -7, 1.5, 3.5);
+
+  // Tongue
+  ctx.fillStyle = '#cc4444';
+  ctx.beginPath(); ctx.ellipse(0, -3.5, 2.5, 1.5, 0, 0, Math.PI * 2); ctx.fill();
+
+  ctx.restore();
+}
+
+// --- COMPOSE THE SCENE ---
+
+// Draw Punch (center, large)
+drawPunch(W * 0.48, H * 0.28, 2.5);
+
+// Draw plushies (floating around)
+drawPlushie(W * 0.18, H * 0.35, 2.2);
+drawPlushie(W * 0.78, H * 0.3, 1.8);
+drawPlushie(W * 0.35, H * 0.18, 1.4);
+drawPlushie(W * 0.68, H * 0.15, 1.2);
+
+// Draw chasers (behind, slightly smaller = further away)
+drawChaser(W * 0.15, H * 0.72, 1.6);
+drawChaser(W * 0.5, H * 0.78, 1.8);
+drawChaser(W * 0.85, H * 0.72, 1.6);
+
+// --- TEXT OVERLAY ---
+// Semi-transparent dark band at top
+ctx.fillStyle = 'rgba(0,0,0,0.55)';
+ctx.fillRect(0, 0, W, 95);
+
+// Title
+ctx.fillStyle = '#fbbf24';
+ctx.font = 'bold 52px "Inter", "Segoe UI", Arial, sans-serif';
+ctx.textAlign = 'left';
+ctx.textBaseline = 'middle';
+ctx.fillText('Punch, the Monkey', 30, 48);
+
+// Tagline at bottom
+ctx.fillStyle = 'rgba(0,0,0,0.55)';
+ctx.fillRect(0, H - 75, W, 75);
+
+ctx.fillStyle = '#ffffff';
+ctx.font = '600 26px "Inter", "Segoe UI", Arial, sans-serif';
+ctx.textAlign = 'left';
+ctx.fillText('Help baby Punch escape the angry monkeys! Free browser game.', 30, H - 42);
+
+// URL on right
+ctx.fillStyle = '#fbbf24';
+ctx.font = 'bold 24px "Inter", "Segoe UI", Arial, sans-serif';
+ctx.textAlign = 'right';
+ctx.fillText('punchthegame.com', W - 30, H - 42);
+
+// Hashtag
+ctx.fillStyle = '#f87171';
+ctx.font = 'bold 20px "Inter", "Segoe UI", Arial, sans-serif';
+ctx.textAlign = 'right';
+ctx.fillText('#HangInTherePunch', W - 30, 48);
+
+console.log('OG image generated! Right-click and save as og-image.png');
+</script>
+</body>
+</html>

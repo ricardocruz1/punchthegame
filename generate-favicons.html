@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Favicon Generator - Punch, the Monkey</title>
+<style>
+body { background: #222; color: #fff; font-family: Arial; text-align: center; padding: 20px; }
+canvas { border: 1px solid #555; margin: 10px; image-rendering: auto; }
+p { margin: 10px 0; color: #aaa; }
+.row { display: flex; justify-content: center; gap: 30px; flex-wrap: wrap; }
+.item { text-align: center; }
+h3 { color: #fbbf24; }
+</style>
+</head>
+<body>
+<h2>Favicon Generator - Punch's Face</h2>
+<p>Right-click each image and "Save Image As..." with the filename shown below it.</p>
+
+<div class="row">
+  <div class="item">
+    <canvas id="c512" width="512" height="512"></canvas>
+    <p><strong>Save as: icon-512.png</strong></p>
+  </div>
+  <div class="item">
+    <canvas id="c192" width="192" height="192"></canvas>
+    <p><strong>Save as: icon-192.png</strong></p>
+  </div>
+  <div class="item">
+    <canvas id="c180" width="180" height="180"></canvas>
+    <p><strong>Save as: apple-touch-icon.png</strong></p>
+  </div>
+  <div class="item">
+    <canvas id="c32" width="32" height="32"></canvas>
+    <p><strong>Save as: favicon-32.png</strong></p>
+  </div>
+</div>
+
+<h3 style="margin-top:30px;">Combined favicon.ico (32x32)</h3>
+<p>For the .ico file, save the 32x32 above as favicon-32.png, then use an online converter<br>
+or just reference the PNG directly in the HTML (works in all modern browsers).</p>
+
+<script>
+const COLORS = {
+  monkey: '#C4A87A',
+  monkeyLight: '#D8C4A0',
+  monkeyDark: '#8A7A5E',
+  monkeyFace: '#FFD8B8',
+  monkeyFaceLight: '#FFE8D0',
+  monkeyEar: '#E8B890',
+};
+
+function drawPunchFace(canvas) {
+  const ctx = canvas.getContext('2d');
+  const S = canvas.width;
+  const scale = S / 100; // Design at 100x100 then scale
+
+  ctx.save();
+  ctx.scale(scale, scale);
+
+  // Background circle (warm golden)
+  const bgGrad = ctx.createRadialGradient(50, 50, 10, 50, 50, 50);
+  bgGrad.addColorStop(0, '#fbbf24');
+  bgGrad.addColorStop(1, '#d97706');
+  ctx.fillStyle = bgGrad;
+  ctx.beginPath();
+  ctx.arc(50, 50, 48, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Subtle border
+  ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Head (centered, filling most of the icon)
+  ctx.fillStyle = COLORS.monkey;
+  ctx.beginPath();
+  ctx.arc(50, 52, 32, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Fur tufts on top
+  ctx.fillStyle = COLORS.monkeyDark;
+  ctx.beginPath();
+  ctx.moveTo(38, 22);
+  ctx.lineTo(41, 14);
+  ctx.lineTo(45, 21);
+  ctx.lineTo(50, 12);
+  ctx.lineTo(55, 21);
+  ctx.lineTo(58, 16);
+  ctx.lineTo(62, 23);
+  ctx.closePath();
+  ctx.fill();
+
+  // Face area
+  ctx.fillStyle = COLORS.monkeyFace;
+  ctx.beginPath();
+  ctx.ellipse(50, 57, 23, 19, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.fillStyle = COLORS.monkeyFaceLight;
+  ctx.beginPath();
+  ctx.ellipse(50, 58, 16, 13, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Ears
+  ctx.fillStyle = COLORS.monkey;
+  ctx.beginPath(); ctx.arc(18, 48, 12, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = COLORS.monkeyEar;
+  ctx.beginPath(); ctx.arc(18, 48, 8, 0, Math.PI * 2); ctx.fill();
+
+  ctx.fillStyle = COLORS.monkey;
+  ctx.beginPath(); ctx.arc(82, 48, 12, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = COLORS.monkeyEar;
+  ctx.beginPath(); ctx.arc(82, 48, 8, 0, Math.PI * 2); ctx.fill();
+
+  // Eyes (BIG cute eyes)
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.ellipse(40, 50, 9, 10, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(60, 50, 9, 10, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Iris
+  ctx.fillStyle = '#1a1008';
+  ctx.beginPath(); ctx.arc(41, 51, 7, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(61, 51, 7, 0, Math.PI * 2); ctx.fill();
+
+  // Eye shines
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.arc(44, 48, 3, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(64, 48, 3, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(39, 54, 1.5, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(59, 54, 1.5, 0, Math.PI * 2); ctx.fill();
+
+  // Worried eyebrows
+  ctx.strokeStyle = COLORS.monkeyDark;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(28, 39);
+  ctx.quadraticCurveTo(36, 42, 44, 40);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(72, 39);
+  ctx.quadraticCurveTo(64, 42, 56, 40);
+  ctx.stroke();
+
+  // Nose
+  ctx.fillStyle = COLORS.monkeyDark;
+  ctx.beginPath(); ctx.ellipse(50, 62, 4, 2.5, 0, 0, Math.PI * 2); ctx.fill();
+
+  // Nostrils
+  ctx.fillStyle = '#5a4a3a';
+  ctx.beginPath(); ctx.arc(48, 62, 1.2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(52, 62, 1.2, 0, Math.PI * 2); ctx.fill();
+
+  // Mouth (worried)
+  ctx.fillStyle = '#8a5a4a';
+  ctx.beginPath(); ctx.ellipse(50, 68, 5, 3.5, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#6a3a2a';
+  ctx.beginPath(); ctx.ellipse(50, 68, 3.5, 2, 0, 0, Math.PI * 2); ctx.fill();
+
+  ctx.restore();
+}
+
+// Generate all sizes
+['c512', 'c192', 'c180', 'c32'].forEach(id => {
+  drawPunchFace(document.getElementById(id));
+});
+
+console.log('All favicons generated! Right-click and save each one.');
+</script>
+</body>
+</html>
