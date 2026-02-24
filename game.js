@@ -18,8 +18,8 @@ ctx.scale(2, 2);
 // ============================================================
 // SUPABASE
 // ============================================================
-const SUPABASE_URL = 'https://oruxxgyqjxcziaqxzrdg.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ydXh4Z3lxanhjemlhcXh6cmRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjM3NjIsImV4cCI6MjA4NzQzOTc2Mn0.cGWDNCe5BFJtEjzy1gz4lboUtijurDGm3JiOZBfcCAc';
+const SUPABASE_URL = '__SUPABASE_URL__';
+const SUPABASE_KEY = '__SUPABASE_KEY__';
 let supabaseClient = null;
 try {
   supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
