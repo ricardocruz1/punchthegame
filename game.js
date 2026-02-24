@@ -650,8 +650,27 @@ canvas.addEventListener('touchstart', (e) => {
     return;
   }
   if (gameState === 'menu') {
-    if (e.code === 'KeyD') { startDailyGame(); return; }
-    if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyR') startNormalGame();
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = W / rect.width;
+    const scaleY = H / rect.height;
+    const tapX = (touch.clientX - rect.left) * scaleX;
+    const tapY = (touch.clientY - rect.top) * scaleY;
+    // Side-by-side layout: PLAY (left) and DAILY (right) at H * 0.78
+    var mbtnY = H * 0.78;
+    var mbtnW = 120;
+    var mgap = 12;
+    var mbtnH = 44;
+    var dailyLeft = W/2 + mgap/2;
+    if (tapY > mbtnY - mbtnH/2 && tapY < mbtnY + mbtnH/2) {
+      if (tapX > dailyLeft && tapX < dailyLeft + mbtnW) {
+        startDailyGame();
+      } else {
+        startNormalGame();
+      }
+    } else {
+      startNormalGame();
+    }
     return;
   }
   if (gameState === 'gameover') {
