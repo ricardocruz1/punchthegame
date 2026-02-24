@@ -208,6 +208,36 @@
     color: #c084fc;
     font-weight: 600;
     font-style: italic;
+    margin-top: 12px;
+  }
+
+  .mode-section {
+    margin-top: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.03);
+    border-left: 3px solid;
+  }
+  .mode-section.mode-endless {
+    border-color: #EF4444;
+  }
+  .mode-section.mode-daily {
+    border-color: #fbbf24;
+  }
+  .mode-tag {
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+  .mode-endless .mode-tag { color: #EF4444; }
+  .mode-daily .mode-tag { color: #fbbf24; }
+  .mode-section p {
+    margin: 2px 0 0;
+    font-size: 12px;
+    line-height: 1.4;
+    color: #a1a1aa;
   }
 
   /* Controls */
@@ -856,18 +886,24 @@
     <div class="panel-card">
       <h2>Punch, the Monkey</h2>
       <p>
-        Meet <span class="highlight">Punch</span> &mdash; a tiny, brave baby monkey on the run
-        from a gang of very grumpy adults who clearly skipped anger management class.
-      </p>
-      <p>
-        Your job? Help this little guy dodge rocks, leap over boulders, duck under
-        fallen logs, and collect his beloved orange plushies along the way.
+        Help <span class="highlight">Punch</span>, a tiny baby monkey, dodge rocks
+        and collect plushies while outrunning a gang of angry adults.
         The longer you survive, the faster it gets.
-        Classic endless runner chaos &mdash; except this time, the stakes are adorable.
       </p>
+      <div class="mode-section mode-endless">
+        <div class="mode-tag">Endless Mode</div>
+        <p>Classic endless runner. Beat your high score and climb the global leaderboard.</p>
+      </div>
+      <div class="mode-section mode-daily">
+        <div class="mode-tag">Daily Challenge</div>
+        <p>
+          Same run for everyone, every day. Obstacles and plushies are identical
+          for all players &mdash; compete for the top daily score.
+          New challenge drops at midnight UTC.
+        </p>
+      </div>
       <p class="cta-line">
-        Every game you play helps spread the word about the real Punch.
-        So go on &mdash; give it a run. He's counting on you.
+        Every game helps spread the word about the real Punch.
       </p>
     </div>
 
@@ -1052,15 +1088,24 @@
   <div class="panel-card">
     <h2 style="color:#fbbf24">Punch, the Monkey</h2>
     <p>
-      Meet <span class="highlight">Punch</span> &mdash; a tiny, brave baby monkey on the run
-      from a gang of very grumpy adults who clearly skipped anger management class.
+      Help <span class="highlight">Punch</span>, a tiny baby monkey, dodge rocks
+      and collect plushies while outrunning angry adults.
+      The longer you survive, the faster it gets.
     </p>
-    <p>
-      Help this little guy dodge rocks, leap over boulders, duck under fallen logs,
-      and collect his beloved orange plushies. The longer you survive, the faster it gets.
-    </p>
+    <div class="mode-section mode-endless">
+      <div class="mode-tag">Endless Mode</div>
+      <p>Classic endless runner. Beat your high score and climb the global leaderboard.</p>
+    </div>
+    <div class="mode-section mode-daily">
+      <div class="mode-tag">Daily Challenge</div>
+      <p>
+        Same run for everyone, every day. Obstacles and plushies are identical
+        for all players &mdash; compete for the top daily score.
+        New challenge at midnight UTC.
+      </p>
+    </div>
     <p class="cta-line">
-      Every game you play helps spread the word about the real Punch.
+      Every game helps spread the word about the real Punch.
     </p>
   </div>
 
