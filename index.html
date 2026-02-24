@@ -1644,7 +1644,7 @@ window.addEventListener('highScoreUpdated', updateDonateGate);
     if (stats.totalPlushies > 0) entries.push({ value: stats.totalPlushies.toLocaleString(), label: 'Plushies Rescued So Far' });
     if (stats.topScore > 0) entries.push({ value: stats.topScore.toLocaleString(), label: 'All-Time Highest Score' });
     if (stats.avgScore > 0) entries.push({ value: Math.round(stats.avgScore).toLocaleString(), label: 'Average Score Per Game' });
-    if (stats.medianScore > 0) entries.push({ value: Math.round(stats.medianScore).toLocaleString(), label: 'Median Score — Are You Above?' });
+    if (stats.medianScore > 0) entries.push({ value: Math.round(stats.medianScore).toLocaleString(), label: 'Median Score — Can You Beat It?' });
     if (stats.gamesToday > 0) entries.push({ value: stats.gamesToday.toLocaleString(), label: 'Games Played Today' });
     if (stats.maxDistance > 0) {
       km = stats.maxDistance / 1000;

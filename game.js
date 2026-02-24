@@ -82,7 +82,7 @@ function getStatEntries() {
   // 6. Average score
   if (s.avgScore > 0) entries.push({ value: Math.round(s.avgScore).toLocaleString(), label: 'average score per game' });
   // 7. Median score
-  if (s.medianScore > 0) entries.push({ value: Math.round(s.medianScore).toLocaleString(), label: 'median score — are you above?' });
+  if (s.medianScore > 0) entries.push({ value: Math.round(s.medianScore).toLocaleString(), label: 'median score — can you beat it?' });
   // 8. Games played today
   if (s.gamesToday > 0) entries.push({ value: s.gamesToday.toLocaleString(), label: 'games played today' });
   // 9. Longest single run
