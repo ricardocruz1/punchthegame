@@ -474,6 +474,12 @@ const input = {
 };
 
 document.addEventListener('keydown', (e) => {
+  // --- MUSIC TOGGLE (works from any screen) ---
+  if (e.code === 'KeyM' && gameState !== 'name') {
+    toggleMusic();
+    return;
+  }
+
   // --- NAME INPUT SCREEN ---
   if (gameState === 'name') {
     // If hidden input exists, let it handle all text input to avoid double-registration
@@ -619,6 +625,21 @@ function focusMobileInput() {
 
 canvas.addEventListener('touchstart', (e) => {
   e.preventDefault();
+
+  // Music icon tap detection (works from any screen except name entry)
+  if (gameState !== 'name') {
+    const t0 = e.touches[0];
+    const r0 = canvas.getBoundingClientRect();
+    const tx = (t0.clientX - r0.left) * (W / r0.width);
+    const ty = (t0.clientY - r0.top) * (H / r0.height);
+    // Icon at W-20, 25 on menu/gameover/share; W-20, 70 during gameplay (below HUD)
+    var iconY = (gameState === 'playing') ? 70 : 25;
+    if (tx > W - 40 && ty > iconY - 18 && ty < iconY + 18) {
+      toggleMusic();
+      return;
+    }
+  }
+
   if (gameState === 'name') {
     // Check if tapping the "Continue" button area
     if (playerName.length >= 1) {
@@ -748,6 +769,18 @@ canvas.addEventListener('touchend', (e) => {
 
 // Mouse click for menu
 canvas.addEventListener('click', (e) => {
+  // Music icon click detection (works from any screen except name entry)
+  if (gameState !== 'name') {
+    const r0 = canvas.getBoundingClientRect();
+    const cx = (e.clientX - r0.left) * (W / r0.width);
+    const cy = (e.clientY - r0.top) * (H / r0.height);
+    var iconY = (gameState === 'playing') ? 70 : 25;
+    if (cx > W - 40 && cy > iconY - 18 && cy < iconY + 18) {
+      toggleMusic();
+      return;
+    }
+  }
+
   if (gameState === 'name') {
     // Check if clicking the "Continue" button area
     if (playerName.length >= 1) {
@@ -908,6 +941,9 @@ function updatePlayStreak() {
 function startGame() {
   gameState = 'playing';
   updateRestartButton();
+
+  // Start background music
+  startMusic();
 
   // Update play streak
   updatePlayStreak();
@@ -1547,6 +1583,9 @@ function gameOver() {
   updateRestartButton();
   shakeAmount = 15;
   flashAlpha = 0.5;
+
+  // Stop background music
+  stopMusic();
 
   if (score > highScore) {
     highScore = score;
@@ -2836,6 +2875,45 @@ function drawHUD() {
     ctx.fillText(badgeText, W - badgeW / 2 - 10, 53);
     ctx.restore();
   }
+
+  // Music mute icon (small speaker, bottom-left of HUD area)
+  drawMusicIcon(W - 20, 70, 10);
+}
+
+// Draw a small music note icon; x,y = center, s = size
+function drawMusicIcon(x, y, s) {
+  ctx.save();
+  ctx.globalAlpha = musicMuted ? 0.3 : 0.5;
+  ctx.fillStyle = '#fff';
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = 1.5;
+
+  // Note head (filled ellipse)
+  ctx.beginPath();
+  ctx.ellipse(x - s * 0.2, y + s * 0.3, s * 0.3, s * 0.22, -0.3, 0, Math.PI * 2);
+  ctx.fill();
+  // Stem
+  ctx.beginPath();
+  ctx.moveTo(x + s * 0.05, y + s * 0.2);
+  ctx.lineTo(x + s * 0.05, y - s * 0.5);
+  ctx.stroke();
+  // Flag
+  ctx.beginPath();
+  ctx.moveTo(x + s * 0.05, y - s * 0.5);
+  ctx.quadraticCurveTo(x + s * 0.45, y - s * 0.25, x + s * 0.15, y - s * 0.05);
+  ctx.stroke();
+
+  // Mute slash
+  if (musicMuted) {
+    ctx.globalAlpha = 0.6;
+    ctx.strokeStyle = '#FF4444';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x - s * 0.5, y - s * 0.5);
+    ctx.lineTo(x + s * 0.5, y + s * 0.5);
+    ctx.stroke();
+  }
+  ctx.restore();
 }
 
 // ============================================================
@@ -3361,7 +3439,7 @@ function drawMenuScreen() {
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.font = '11px Arial';
     ctx.textAlign = 'center';
-    ctx.fillText('press D for daily  \u00B7  R to play', W / 2, H * 0.87 + 38);
+    ctx.fillText('press D for daily  \u00B7  R to play  \u00B7  M to toggle music', W / 2, H * 0.87 + 38);
 
     // Community stats roll-up display
     var entries = getStatEntries();
@@ -3433,6 +3511,8 @@ function drawMenuScreen() {
     }
   }
 
+  // Music icon on menu (top-right)
+  drawMusicIcon(W - 20, 25, 10);
 }
 
 // ============================================================
@@ -3687,6 +3767,9 @@ function drawShareScreen() {
     shareButtonFlash -= 0.016; // ~1 second at 60fps
     if (shareButtonFlash <= 0) shareButtonFlash = 0;
   }
+
+  // Music icon on share screen
+  drawMusicIcon(W - 20, 25, 10);
 }
 
 function drawGameOverScreen() {
@@ -3861,6 +3944,9 @@ function drawGameOverScreen() {
     ctx.textAlign = 'center';
     ctx.fillText('or press R to restart', W / 2, btnY + 36);
   }
+
+  // Music icon on game over screen
+  drawMusicIcon(W - 20, 25, 10);
 }
 
 function roundRect(ctx, x, y, w, h, r) {
@@ -3884,23 +3970,274 @@ function roundRect(ctx, x, y, w, h, r) {
 // AUDIO (Web Audio API - procedural)
 // ============================================================
 let audioCtx = null;
+let sfxGain = null;
+let musicGain = null;
+let musicMuted = localStorage.getItem('punchMusicMuted') === 'true';
+let musicPlaying = false;
+let musicNodes = []; // track active oscillators/nodes for cleanup
 
 function initAudio() {
   if (audioCtx) return;
   try {
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Master gain nodes
+    sfxGain = audioCtx.createGain();
+    sfxGain.gain.value = 1.0;
+    sfxGain.connect(audioCtx.destination);
+
+    musicGain = audioCtx.createGain();
+    musicGain.gain.value = musicMuted ? 0 : 0.108;
+    musicGain.connect(audioCtx.destination);
   } catch (e) {
     // Audio not supported
   }
 }
 
+// Resume AudioContext on user gesture (required by mobile browsers)
+function resumeAudio() {
+  if (audioCtx && audioCtx.state === 'suspended') {
+    audioCtx.resume();
+  }
+}
+['touchstart', 'touchend', 'mousedown', 'keydown'].forEach(function(evt) {
+  document.addEventListener(evt, resumeAudio, { once: false, passive: true });
+});
+
+function toggleMusic() {
+  musicMuted = !musicMuted;
+  localStorage.setItem('punchMusicMuted', musicMuted.toString());
+  if (musicGain) {
+    musicGain.gain.setTargetAtTime(musicMuted ? 0 : 0.108, audioCtx.currentTime, 0.05);
+  }
+}
+
+// ============================================================
+// PROCEDURAL MUSIC ENGINE — Jungle Chiptune
+// ============================================================
+// Music runs as a scheduled loop using Web Audio timing for glitch-free playback.
+// Pattern: 8-bar loop at ~140 BPM, pentatonic minor scale, jungle feel.
+
+const MUSIC_BPM = 140;
+const MUSIC_BEAT = 60 / MUSIC_BPM; // seconds per beat
+const MUSIC_BAR = MUSIC_BEAT * 4;   // seconds per bar
+const MUSIC_LOOP = MUSIC_BAR * 8 + 0.10; // 8 bars + 100ms breathing room
+
+// Pentatonic minor scale frequencies (rooted at different octaves)
+// E minor pentatonic: E, G, A, B, D
+const NOTE = {
+  E2: 82.41, G2: 98.00, A2: 110.00, B2: 123.47, D3: 146.83,
+  E3: 164.81, G3: 196.00, A3: 220.00, B3: 246.94, D4: 293.66,
+  E4: 329.63, G4: 392.00, A4: 440.00, B4: 493.88, D5: 587.33,
+  E5: 659.26, REST: 0
+};
+
+// Bass pattern — 8 bars, one note per beat (quarter notes)
+const bassPattern = [
+  // Bar 1         Bar 2
+  NOTE.E2, NOTE.E2, NOTE.G2, NOTE.E2,   NOTE.A2, NOTE.A2, NOTE.G2, NOTE.A2,
+  // Bar 3         Bar 4
+  NOTE.B2, NOTE.B2, NOTE.A2, NOTE.G2,   NOTE.E2, NOTE.G2, NOTE.A2, NOTE.E2,
+  // Bar 5         Bar 6
+  NOTE.E2, NOTE.E2, NOTE.G2, NOTE.E2,   NOTE.A2, NOTE.A2, NOTE.B2, NOTE.D3,
+  // Bar 7         Bar 8
+  NOTE.B2, NOTE.A2, NOTE.G2, NOTE.A2,   NOTE.E2, NOTE.G2, NOTE.E2, NOTE.E2
+];
+
+// Melody pattern — 8th notes (2 per beat), 0 = rest
+const melodyPattern = [
+  // Bar 1
+  NOTE.E4, NOTE.REST, NOTE.G4, NOTE.E4, NOTE.REST, NOTE.D4, NOTE.E4, NOTE.REST,
+  // Bar 2
+  NOTE.A4, NOTE.REST, NOTE.G4, NOTE.REST, NOTE.E4, NOTE.D4, NOTE.E4, NOTE.REST,
+  // Bar 3
+  NOTE.B4, NOTE.REST, NOTE.A4, NOTE.G4, NOTE.REST, NOTE.E4, NOTE.G4, NOTE.A4,
+  // Bar 4
+  NOTE.G4, NOTE.E4, NOTE.D4, NOTE.REST, NOTE.E4, NOTE.REST, NOTE.REST, NOTE.REST,
+  // Bar 5
+  NOTE.E4, NOTE.REST, NOTE.G4, NOTE.E4, NOTE.REST, NOTE.D4, NOTE.E4, NOTE.G4,
+  // Bar 6
+  NOTE.A4, NOTE.REST, NOTE.B4, NOTE.A4, NOTE.G4, NOTE.REST, NOTE.A4, NOTE.REST,
+  // Bar 7
+  NOTE.B4, NOTE.D5, NOTE.B4, NOTE.A4, NOTE.REST, NOTE.G4, NOTE.A4, NOTE.G4,
+  // Bar 8
+  NOTE.E4, NOTE.REST, NOTE.D4, NOTE.REST, NOTE.E4, NOTE.REST, NOTE.REST, NOTE.REST
+];
+
+// Hi-hat / percussion pattern — 1 = hit, 0 = rest (16th note grid, 4 per beat)
+const hihatPattern = [
+  1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,1, // Bar 1
+  1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,1, // Bar 2
+  1,0,1,0, 1,0,1,1, 1,0,1,0, 1,0,1,0, // Bar 3
+  1,0,1,0, 1,0,1,1, 1,0,1,0, 1,1,1,1, // Bar 4
+  1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,1, // Bar 5
+  1,0,1,0, 1,0,1,0, 1,0,1,0, 1,0,1,1, // Bar 6
+  1,0,1,0, 1,0,1,1, 1,0,1,0, 1,0,1,0, // Bar 7
+  1,0,1,0, 1,0,1,1, 1,0,1,0, 1,1,0,0  // Bar 8
+];
+
+// Kick drum pattern — hits on beat 1 and 3 with variations (16th note grid)
+const kickPattern = [
+  1,0,0,0, 0,0,1,0, 1,0,0,0, 0,0,1,0, // Bar 1
+  1,0,0,0, 0,0,1,0, 1,0,0,0, 0,1,0,0, // Bar 2
+  1,0,0,0, 0,0,1,0, 1,0,0,0, 0,0,1,0, // Bar 3
+  1,0,0,0, 0,0,1,0, 1,0,0,1, 0,0,0,0, // Bar 4
+  1,0,0,0, 0,0,1,0, 1,0,0,0, 0,0,1,0, // Bar 5
+  1,0,0,0, 0,0,1,0, 1,0,0,0, 0,1,0,0, // Bar 6
+  1,0,0,0, 0,0,1,0, 1,0,0,0, 0,0,1,0, // Bar 7
+  1,0,0,0, 0,0,1,0, 1,0,0,0, 0,0,0,0  // Bar 8
+];
+
+let musicScheduleTimer = null;
+let musicStartTime = 0;
+let musicLoopCount = 0;
+
+function scheduleMusic() {
+  if (!audioCtx || !musicGain) return;
+
+  var startTime = audioCtx.currentTime + 0.05; // small buffer
+  musicStartTime = startTime;
+
+  // --- BASS (square wave, low octave) ---
+  for (var i = 0; i < bassPattern.length; i++) {
+    var freq = bassPattern[i];
+    if (freq === 0) continue;
+    var t = startTime + i * MUSIC_BEAT;
+    var dur = MUSIC_BEAT * 0.85;
+
+    var osc = audioCtx.createOscillator();
+    var g = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0.113, t);
+    g.gain.setValueAtTime(0.113, t + dur * 0.7);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    osc.connect(g);
+    g.connect(musicGain);
+    osc.start(t);
+    osc.stop(t + dur);
+    musicNodes.push(osc);
+  }
+
+  // --- MELODY (triangle wave, higher octave) ---
+  var eighthNote = MUSIC_BEAT / 2;
+  for (var i = 0; i < melodyPattern.length; i++) {
+    var freq = melodyPattern[i];
+    if (freq === 0) continue;
+    var t = startTime + i * eighthNote;
+    var dur = eighthNote * 0.8;
+
+    var osc = audioCtx.createOscillator();
+    var g = audioCtx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, t);
+    g.gain.setValueAtTime(0.168, t);
+    g.gain.setValueAtTime(0.168, t + dur * 0.5);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    osc.connect(g);
+    g.connect(musicGain);
+    osc.start(t);
+    osc.stop(t + dur);
+    musicNodes.push(osc);
+  }
+
+  // --- HI-HAT (filtered noise bursts) ---
+  var sixteenthNote = MUSIC_BEAT / 4;
+  for (var i = 0; i < hihatPattern.length; i++) {
+    if (!hihatPattern[i]) continue;
+    var t = startTime + i * sixteenthNote;
+    scheduleNoiseBurst(t, 0.03, 6000, 0.06); // short, high-pass filtered
+  }
+
+  // --- KICK (low sine burst) ---
+  for (var i = 0; i < kickPattern.length; i++) {
+    if (!kickPattern[i]) continue;
+    var t = startTime + i * sixteenthNote;
+    var osc = audioCtx.createOscillator();
+    var g = audioCtx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(150, t);
+    osc.frequency.exponentialRampToValueAtTime(40, t + 0.1);
+    g.gain.setValueAtTime(0.35, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.12);
+    osc.connect(g);
+    g.connect(musicGain);
+    osc.start(t);
+    osc.stop(t + 0.15);
+    musicNodes.push(osc);
+  }
+
+  // Schedule next loop just before this one ends
+  musicLoopCount++;
+  musicScheduleTimer = setTimeout(function() {
+    if (musicPlaying) scheduleMusic();
+  }, (MUSIC_LOOP - 0.1) * 1000);
+}
+
+function scheduleNoiseBurst(time, duration, filterFreq, volume) {
+  // Create noise via buffer
+  var bufferSize = audioCtx.sampleRate * duration;
+  var buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+  var data = buffer.getChannelData(0);
+  for (var i = 0; i < bufferSize; i++) {
+    data[i] = Math.random() * 2 - 1;
+  }
+  var noise = audioCtx.createBufferSource();
+  noise.buffer = buffer;
+
+  var filter = audioCtx.createBiquadFilter();
+  filter.type = 'highpass';
+  filter.frequency.value = filterFreq;
+
+  var g = audioCtx.createGain();
+  g.gain.setValueAtTime(volume, time);
+  g.gain.exponentialRampToValueAtTime(0.001, time + duration);
+
+  noise.connect(filter);
+  filter.connect(g);
+  g.connect(musicGain);
+  noise.start(time);
+  noise.stop(time + duration);
+  musicNodes.push(noise);
+}
+
+function startMusic() {
+  if (musicPlaying || !audioCtx) return;
+  musicPlaying = true;
+  musicNodes = [];
+  musicLoopCount = 0;
+  scheduleMusic();
+}
+
+function stopMusic() {
+  musicPlaying = false;
+  if (musicScheduleTimer) {
+    clearTimeout(musicScheduleTimer);
+    musicScheduleTimer = null;
+  }
+  // Fade out any playing nodes
+  if (musicGain && audioCtx) {
+    musicGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.08);
+    // Restore volume after fadeout (for next start)
+    setTimeout(function() {
+      if (musicGain && audioCtx) {
+        musicGain.gain.setValueAtTime(musicMuted ? 0 : 0.108, audioCtx.currentTime);
+      }
+    }, 300);
+  }
+  // Stop all tracked nodes
+  musicNodes.forEach(function(n) {
+    try { n.stop(); } catch (e) {}
+  });
+  musicNodes = [];
+}
+
 function playSound(type) {
-  if (!audioCtx) return;
+  if (!audioCtx || !sfxGain) return;
   try {
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.connect(gain);
-    gain.connect(audioCtx.destination);
+    gain.connect(sfxGain);
 
     const now = audioCtx.currentTime;
 
@@ -3970,15 +4307,6 @@ function playSound(type) {
     // Ignore audio errors
   }
 }
-
-// Hook sounds into actions
-const origSwitchLane = switchLane;
-const origJump = jump;
-const origRoll = roll;
-const origGameOver = gameOver;
-
-// We patch the original functions to add sound
-// (Already defined above, we'll add audio calls in the update/collect logic instead)
 
 // ============================================================
 // SOUND INTEGRATION (patched into game events)
