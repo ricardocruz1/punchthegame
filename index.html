@@ -199,6 +199,11 @@
     color: #fbbf24;
   }
 
+  .game-info-card p,
+  .game-info-card .mode-section p {
+    font-size: 14px;
+  }
+
   .highlight {
     color: #fbbf24;
     font-weight: 600;
@@ -404,6 +409,64 @@
     color: #fbbf24;
   }
   .lb-daily-stats {
+    text-align: center;
+    padding: 6px 0 0;
+    font-size: 11px;
+    color: #666;
+  }
+
+  /* ---------- HALL OF FAME ---------- */
+  .hof-card {
+    background: linear-gradient(135deg, #1E2030 0%, #1C1F2E 100%);
+    border: 1px solid rgba(251, 191, 36, 0.15);
+  }
+  .hof-title {
+    color: #fbbf24;
+    font-size: 18px;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .hof-date-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .hof-arrow {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.05);
+    color: #e4e4e7;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    transition: background 0.15s, border-color 0.15s;
+    line-height: 1;
+    padding: 0;
+  }
+  .hof-arrow:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.2);
+  }
+  .hof-arrow:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+  }
+  .hof-date-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fbbf24;
+    min-width: 160px;
+    text-align: center;
+  }
+  .hof-stats {
     text-align: center;
     padding: 6px 0 0;
     font-size: 11px;
@@ -883,7 +946,7 @@
   <!-- ======== LEFT PANEL ======== -->
   <div class="panel left-panel">
 
-    <div class="panel-card">
+    <div class="panel-card game-info-card">
       <h2>Punch, the Monkey</h2>
       <p>
         Help <span class="highlight">Punch</span>, a tiny baby monkey, dodge rocks
@@ -899,7 +962,7 @@
         <p>
           Same run for everyone, every day. Obstacles and plushies are identical
           for all players &mdash; compete for the top daily score.
-          New challenge drops at midnight UTC.
+          New challenge drops at midnight UTC. Top scores make the <span class="highlight">Hall of Fame</span>.
         </p>
       </div>
       <p class="cta-line">
@@ -1024,41 +1087,21 @@
       <span class="hashtag">#HangInTherePunch</span>
     </div>
 
-    <div class="panel-card donate-card">
-      <h3>Help Punch (For Real)</h3>
-      <p>
-        This game exists because Punch's story matters.
-        If it made you smile, laugh, or frantically mash your keyboard &mdash;
-        consider supporting animals like him.
-      </p>
-      <p>
-        75% of every donation goes to
-        <a href="https://www.worldanimalprotection.org" target="_blank" rel="noopener" style="color:#f87171;font-weight:600;text-decoration:underline;">World Animal Protection</a>
-        &mdash; we couldn't find a charity aimed directly at Punch,
-        so we picked the next best thing.
-      </p>
-      <div class="donate-gate" id="donateGateDesktop">
-        <div class="donate-locked">
-          <span class="lock-icon">&#x1F512;</span>
-          <span class="lock-label">Score 10,000 to unlock donations</span>
-          <div class="lock-progress-wrap">
-            <div class="lock-progress-bar" id="lockBarDesktop"></div>
-          </div>
-          <span class="lock-sublabel" id="lockSubDesktop">Your best: 0 / 10,000</span>
-        </div>
-        <a class="donate-btn donate-btn-unlocked" href="https://ko-fi.com/punchthegame" target="_blank" rel="noopener">
-          Support Punch
-        </a>
+    <div class="panel-card hof-card">
+      <h3 class="hof-title">Hall of Fame</h3>
+      <div class="hof-date-nav">
+        <button class="hof-arrow hof-prev" id="hofPrev" onclick="hofPrevDay()">&lsaquo;</button>
+        <span class="hof-date-label" id="hofDateLabel">Loading...</span>
+        <button class="hof-arrow hof-next" id="hofNext" onclick="hofNextDay()">&rsaquo;</button>
       </div>
-      <div class="split-bar">
-        <div class="portion-punch"></div>
-        <div class="portion-dev"></div>
+      <div class="lb-tabs">
+        <button class="lb-tab active" data-target="hofLeaderboard" data-platform="pc" onclick="switchHofTab(this)">PC</button>
+        <button class="lb-tab" data-target="hofLeaderboard" data-platform="mobile" onclick="switchHofTab(this)">Mobile</button>
       </div>
-      <div class="split-labels">
-        <span>75% to World Animal Protection</span>
-        <span>25% game dev</span>
+      <div id="hofLeaderboard" class="panel-leaderboard">
+        <div class="lb-loading">Loading...</div>
       </div>
-      <span class="split-note">Full transparency &mdash; every donation tracked and reported.</span>
+      <div class="hof-stats" id="hofStats"></div>
     </div>
 
   </div>
@@ -1071,7 +1114,7 @@
 <div class="mobile-fab-menu" id="mobileFabMenu">
   <button class="mobile-fab-menu-item" onclick="toggleFabMenu(); toggleOverlay('info-overlay')">How to Play</button>
   <button class="mobile-fab-menu-item" onclick="toggleFabMenu(); toggleOverlay('story-overlay')">Punch's Story</button>
-  <a class="mobile-fab-menu-item menu-donate" id="mobileFabDonate" href="https://ko-fi.com/punchthegame" target="_blank" rel="noopener">Donate</a>
+  <button class="mobile-fab-menu-item" onclick="toggleFabMenu(); toggleOverlay('hof-overlay')">Hall of Fame</button>
 </div>
 
 <!-- ======== MOBILE BOTTOM BAR (hidden, kept for compat) ======== -->
@@ -1101,7 +1144,7 @@
       <p>
         Same run for everyone, every day. Obstacles and plushies are identical
         for all players &mdash; compete for the top daily score.
-        New challenge at midnight UTC.
+        New challenge at midnight UTC. Top scores make the <span class="highlight">Hall of Fame</span>.
       </p>
     </div>
     <p class="cta-line">
@@ -1192,33 +1235,27 @@
     </p>
     <span class="hashtag">#HangInTherePunch</span>
   </div>
+</div>
 
-  <div class="panel-card donate-card">
-    <h3>Help Punch (For Real)</h3>
-    <p>75% of every donation goes to
-      <a href="https://www.worldanimalprotection.org" target="_blank" rel="noopener" style="color:#f87171;font-weight:600;text-decoration:underline;">World Animal Protection</a>.
-    </p>
-    <div class="donate-gate" id="donateGateMobile">
-      <div class="donate-locked">
-        <span class="lock-icon">&#x1F512;</span>
-        <span class="lock-label">Score 10,000 to unlock donations</span>
-        <div class="lock-progress-wrap">
-          <div class="lock-progress-bar" id="lockBarMobile"></div>
-        </div>
-        <span class="lock-sublabel" id="lockSubMobile">Your best: 0 / 10,000</span>
-      </div>
-      <a class="donate-btn donate-btn-unlocked" href="https://ko-fi.com/punchthegame" target="_blank" rel="noopener">
-        Support Punch
-      </a>
+<!-- ======== MOBILE HALL OF FAME OVERLAY ======== -->
+<div class="mobile-overlay" id="hof-overlay">
+  <div class="overlay-close"><button onclick="toggleOverlay('hof-overlay')">Close</button></div>
+
+  <div class="panel-card hof-card">
+    <h3 class="hof-title">Hall of Fame</h3>
+    <div class="hof-date-nav">
+      <button class="hof-arrow hof-prev" id="hofPrevMobile" onclick="hofPrevDay()">&lsaquo;</button>
+      <span class="hof-date-label" id="hofDateLabelMobile">Loading...</span>
+      <button class="hof-arrow hof-next" id="hofNextMobile" onclick="hofNextDay()">&rsaquo;</button>
     </div>
-    <div class="split-bar">
-      <div class="portion-punch"></div>
-      <div class="portion-dev"></div>
+    <div class="lb-tabs">
+      <button class="lb-tab active" data-target="hofLeaderboardMobile" data-platform="pc" onclick="switchHofTab(this)">PC</button>
+      <button class="lb-tab" data-target="hofLeaderboardMobile" data-platform="mobile" onclick="switchHofTab(this)">Mobile</button>
     </div>
-    <div class="split-labels">
-      <span>75% to World Animal Protection</span>
-      <span>25% game dev</span>
+    <div id="hofLeaderboardMobile" class="panel-leaderboard">
+      <div class="lb-loading">Loading...</div>
     </div>
+    <div class="hof-stats" id="hofStatsMobile"></div>
   </div>
 </div>
 
@@ -1251,61 +1288,9 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// ---------- DONATE GATE ----------
-const DONATE_UNLOCK_SCORE = 10000;
-
-function updateDonateGate() {
-  const hs = parseInt(localStorage.getItem('punchMonkeyHighScore') || '0');
-  const unlocked = hs >= DONATE_UNLOCK_SCORE;
-  const pct = Math.min(100, Math.round((hs / DONATE_UNLOCK_SCORE) * 100));
-
-  // Desktop gate
-  const gd = document.getElementById('donateGateDesktop');
-  if (gd) {
-    gd.classList.toggle('unlocked', unlocked);
-    const bar = document.getElementById('lockBarDesktop');
-    const sub = document.getElementById('lockSubDesktop');
-    if (bar) bar.style.width = pct + '%';
-    if (sub) sub.textContent = 'Your best: ' + hs.toLocaleString() + ' / ' + DONATE_UNLOCK_SCORE.toLocaleString();
-  }
-
-  // Mobile overlay gate
-  const gm = document.getElementById('donateGateMobile');
-  if (gm) {
-    gm.classList.toggle('unlocked', unlocked);
-    const bar = document.getElementById('lockBarMobile');
-    const sub = document.getElementById('lockSubMobile');
-    if (bar) bar.style.width = pct + '%';
-    if (sub) sub.textContent = 'Your best: ' + hs.toLocaleString() + ' / ' + DONATE_UNLOCK_SCORE.toLocaleString();
-  }
-
-  // Fab menu donate item
-  const fbd = document.getElementById('mobileFabDonate');
-  if (fbd) {
-    if (unlocked) {
-      fbd.classList.remove('locked');
-      fbd.textContent = 'Donate';
-      fbd.href = 'https://ko-fi.com/punchthegame';
-      fbd.style.pointerEvents = '';
-    } else {
-      fbd.classList.add('locked');
-      fbd.textContent = '10k to Donate';
-      fbd.style.pointerEvents = 'none';
-    }
-  }
-
-  // Mobile bottom bar donate button (legacy)
-  const mbd = document.getElementById('mobileBarDonate');
-  if (mbd) {
-    if (unlocked) {
-      mbd.classList.remove('locked');
-      mbd.textContent = 'Donate';
-    } else {
-      mbd.classList.add('locked');
-      mbd.textContent = '10k to Donate';
-    }
-  }
-}
+// ---------- DONATE GATE (legacy, elements removed) ----------
+// Kept minimal for compatibility — game.js may dispatch highScoreUpdated
+function updateDonateGate() {}
 
 // Run on load
 updateDonateGate();
@@ -1432,7 +1417,7 @@ window.addEventListener('highScoreUpdated', updateDonateGate);
   // ============================================================
   // DAILY LEADERBOARD (panel)
   // ============================================================
-  var DAILY_LAUNCH_DATE = new Date('2026-02-25');
+  // Daily launch date is now fetched dynamically via window.hofFirstDate
   var dailyPanelCache = { pc: null, mobile: null };
   var dailyPanelStats = null;
 
@@ -1448,9 +1433,12 @@ window.addEventListener('highScoreUpdated', updateDonateGate);
   }
 
   function getDailyDayNumberPanel() {
+    // Use dynamic first date from HoF init
+    var launchStr = window.hofFirstDate;
+    if (!launchStr) return null;
     var now = new Date();
     now.setHours(0,0,0,0);
-    var launch = new Date(DAILY_LAUNCH_DATE);
+    var launch = new Date(launchStr + 'T00:00:00');
     launch.setHours(0,0,0,0);
     return Math.max(1, Math.floor((now - launch) / 86400000) + 1);
   }
@@ -1496,7 +1484,7 @@ window.addEventListener('highScoreUpdated', updateDonateGate);
     var dayNum = getDailyDayNumberPanel();
     var headers = document.querySelectorAll('.lb-daily-header');
     headers.forEach(function(el) {
-      el.textContent = 'Daily Challenge #' + dayNum;
+      el.textContent = dayNum ? 'Daily Challenge #' + dayNum : 'Daily Challenge';
     });
   }
 
@@ -1760,6 +1748,249 @@ window.addEventListener('highScoreUpdated', updateDonateGate);
       animateBatches();
     }
   };
+
+  // ============================================================
+  // HALL OF FAME (daily leaderboard history, paginated by date)
+  // ============================================================
+  var hofFirstDate = null; // dynamically fetched from DB
+  var hofCurrentDate = null; // YYYY-MM-DD string
+  var hofCache = {}; // { 'YYYY-MM-DD': { pc: [...], mobile: [...], stats: {...} } }
+  var hofActiveTab = {
+    hofLeaderboard: 'pc',
+    hofLeaderboardMobile: 'pc'
+  };
+
+  function hofGetYesterday() {
+    var d = new Date();
+    d.setDate(d.getDate() - 1);
+    return hofFormatDate(d);
+  }
+
+  function hofGetToday() {
+    return hofFormatDate(new Date());
+  }
+
+  function hofFormatDate(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function hofParseDate(str) {
+    var parts = str.split('-');
+    return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+  }
+
+  function hofDayNumber(dateStr) {
+    if (!hofFirstDate) return '?';
+    var d = hofParseDate(dateStr);
+    d.setHours(0,0,0,0);
+    var launch = hofParseDate(hofFirstDate);
+    launch.setHours(0,0,0,0);
+    return Math.max(1, Math.floor((d - launch) / 86400000) + 1);
+  }
+
+  function hofFormatLabel(dateStr) {
+    var d = hofParseDate(dateStr);
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var dayNum = hofDayNumber(dateStr);
+    return 'Daily #' + dayNum + '  —  ' + months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+  }
+
+  function hofCanGoNext() {
+    if (!hofCurrentDate) return false;
+    var yesterday = hofGetYesterday();
+    return hofCurrentDate < yesterday;
+  }
+
+  function hofCanGoPrev() {
+    if (!hofCurrentDate || !hofFirstDate) return false;
+    return hofCurrentDate > hofFirstDate;
+  }
+
+  function hofUpdateNav() {
+    var label = hofFormatLabel(hofCurrentDate);
+    var labelEl = document.getElementById('hofDateLabel');
+    var labelElM = document.getElementById('hofDateLabelMobile');
+    if (labelEl) labelEl.textContent = label;
+    if (labelElM) labelElM.textContent = label;
+
+    var prevEl = document.getElementById('hofPrev');
+    var prevElM = document.getElementById('hofPrevMobile');
+    var nextEl = document.getElementById('hofNext');
+    var nextElM = document.getElementById('hofNextMobile');
+    if (prevEl) prevEl.disabled = !hofCanGoPrev();
+    if (prevElM) prevElM.disabled = !hofCanGoPrev();
+    if (nextEl) nextEl.disabled = !hofCanGoNext();
+    if (nextElM) nextElM.disabled = !hofCanGoNext();
+  }
+
+  function hofRenderLeaderboard(containerId, data) {
+    var el = document.getElementById(containerId);
+    if (!el) return;
+    if (!data || data.length === 0) {
+      el.innerHTML = '<div class="lb-loading">No scores recorded for this day.</div>';
+      return;
+    }
+    var isMobile = containerId.indexOf('Mobile') !== -1;
+    var entries = isMobile ? data.slice(0, 10) : data;
+
+    function entryHTML(row, i) {
+      var distStr = row.distance != null ? Math.floor(row.distance) + 'm' : '';
+      return '<div class="lb-entry">'
+        + '<span class="lb-rank ' + rankClass(i) + '">' + (i + 1) + '.</span>'
+        + '<span class="lb-name">' + escapeHTML(row.name) + '</span>'
+        + '<span class="lb-date">' + distStr + '</span>'
+        + '<span class="lb-score">' + row.score.toLocaleString() + '</span>'
+        + '</div>';
+    }
+
+    if (isMobile) {
+      el.innerHTML = '<div class="lb-col">' + entries.map(function(row, i) {
+        return entryHTML(row, i);
+      }).join('') + '</div>';
+    } else {
+      var half = Math.ceil(entries.length / 2);
+      var left = entries.slice(0, half);
+      var right = entries.slice(half);
+      el.innerHTML = '<div class="lb-col">' + left.map(function(row, i) {
+        return entryHTML(row, i);
+      }).join('') + '</div>'
+      + '<div class="lb-col">' + right.map(function(row, i) {
+        return entryHTML(row, i + half);
+      }).join('') + '</div>';
+    }
+  }
+
+  function hofRenderStats(dateStr) {
+    var cached = hofCache[dateStr];
+    var statsEls = [document.getElementById('hofStats'), document.getElementById('hofStatsMobile')];
+    statsEls.forEach(function(el) {
+      if (!el) return;
+      if (!cached || !cached.stats || !cached.stats.total_players) {
+        el.textContent = '';
+        return;
+      }
+      var s = cached.stats;
+      el.textContent = s.total_players + ' player' + (s.total_players !== 1 ? 's' : '') + ' · avg score ' + Math.round(s.avg_score).toLocaleString();
+    });
+  }
+
+  async function hofFetchDate(dateStr) {
+    if (hofCache[dateStr]) return; // already cached
+
+    hofCache[dateStr] = { pc: null, mobile: null, stats: null };
+
+    async function fetchPlatform(platform) {
+      try {
+        var { data, error } = await sb.rpc('get_daily_leaderboard', { p_date: dateStr, p_platform: platform });
+        if (!error && data) {
+          hofCache[dateStr][platform] = data;
+        }
+      } catch(e) {
+        console.warn('HoF fetch failed (' + platform + ', ' + dateStr + '):', e);
+      }
+    }
+
+    async function fetchStats() {
+      try {
+        var { data, error } = await sb.rpc('get_daily_stats', { p_date: dateStr });
+        if (!error && data) {
+          hofCache[dateStr].stats = Array.isArray(data) ? data[0] : data;
+        }
+      } catch(e) {
+        console.warn('HoF stats fetch failed (' + dateStr + '):', e);
+      }
+    }
+
+    await Promise.all([fetchPlatform('pc'), fetchPlatform('mobile'), fetchStats()]);
+  }
+
+  async function hofLoadCurrentDate() {
+    // Show loading
+    var containers = ['hofLeaderboard', 'hofLeaderboardMobile'];
+    containers.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.innerHTML = '<div class="lb-loading">Loading...</div>';
+    });
+
+    hofUpdateNav();
+    await hofFetchDate(hofCurrentDate);
+
+    // Render active tab for each container
+    var pcData = hofCache[hofCurrentDate] ? hofCache[hofCurrentDate].pc : null;
+    var mobileData = hofCache[hofCurrentDate] ? hofCache[hofCurrentDate].mobile : null;
+
+    hofRenderLeaderboard('hofLeaderboard', hofActiveTab.hofLeaderboard === 'pc' ? pcData : mobileData);
+    hofRenderLeaderboard('hofLeaderboardMobile', hofActiveTab.hofLeaderboardMobile === 'pc' ? pcData : mobileData);
+    hofRenderStats(hofCurrentDate);
+  }
+
+  window.hofPrevDay = function() {
+    if (!hofCanGoPrev()) return;
+    var d = hofParseDate(hofCurrentDate);
+    d.setDate(d.getDate() - 1);
+    hofCurrentDate = hofFormatDate(d);
+    hofLoadCurrentDate();
+  };
+
+  window.hofNextDay = function() {
+    if (!hofCanGoNext()) return;
+    var d = hofParseDate(hofCurrentDate);
+    d.setDate(d.getDate() + 1);
+    hofCurrentDate = hofFormatDate(d);
+    hofLoadCurrentDate();
+  };
+
+  window.switchHofTab = function(btn) {
+    var platform = btn.getAttribute('data-platform');
+    var target = btn.getAttribute('data-target');
+    hofActiveTab[target] = platform;
+    // Update tab styles
+    var tabs = btn.parentElement.querySelectorAll('.lb-tab');
+    tabs.forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+    // Render from cache
+    var cached = hofCache[hofCurrentDate];
+    var data = cached ? cached[platform] : null;
+    hofRenderLeaderboard(target, data);
+  };
+
+  // Initialize Hall of Fame — fetch earliest daily date from DB
+  async function hofInit() {
+    try {
+      var { data, error } = await sb
+        .from('daily_leaderboard')
+        .select('seed_date')
+        .order('seed_date', { ascending: true })
+        .limit(1);
+      if (!error && data && data.length > 0) {
+        hofFirstDate = data[0].seed_date;
+        window.hofFirstDate = hofFirstDate;
+      }
+    } catch(e) {
+      console.warn('HoF: failed to fetch first daily date:', e);
+    }
+
+    if (!hofFirstDate) {
+      // Fallback: can't determine range, show today
+      hofFirstDate = hofGetToday();
+      window.hofFirstDate = hofFirstDate;
+    }
+
+    // Start from yesterday, clamped to valid range
+    var yesterday = hofGetYesterday();
+    if (yesterday >= hofFirstDate) {
+      hofCurrentDate = yesterday;
+    } else {
+      hofCurrentDate = hofFirstDate;
+    }
+
+    hofLoadCurrentDate();
+
+    // Re-render daily headers now that we have the real first date
+    renderDailyHeaders();
+  }
+
+  hofInit();
 
 })();
 </script>

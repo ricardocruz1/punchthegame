@@ -199,8 +199,8 @@ let dailyLeaderboardLoading = false;
 let dailyLeaderboardLastFetch = 0;
 let dailyStats = null;
 
-// Launch date for daily numbering
-const DAILY_LAUNCH_DATE = new Date('2026-02-25');
+// Launch date for daily numbering — fetched dynamically from DB
+let dailyFirstDate = null; // will be set to 'YYYY-MM-DD' string once fetched
 
 function getDailySeedDate() {
   var d = new Date();
@@ -208,12 +208,34 @@ function getDailySeedDate() {
 }
 
 function getDailyDayNumber() {
+  // If we have the dynamic first date from HoF init (index.html), use it
+  if (!dailyFirstDate && window.hofFirstDate) {
+    dailyFirstDate = window.hofFirstDate;
+  }
+  if (!dailyFirstDate) return null; // not yet loaded — caller should handle gracefully
   var now = new Date();
   now.setHours(0, 0, 0, 0);
-  var launch = new Date(DAILY_LAUNCH_DATE);
+  var launch = new Date(dailyFirstDate + 'T00:00:00');
   launch.setHours(0, 0, 0, 0);
   return Math.max(1, Math.floor((now - launch) / 86400000) + 1);
 }
+
+// Fetch earliest daily date from DB (fallback if HoF hasn't loaded yet)
+(function fetchDailyFirstDate() {
+  if (!supabaseClient) return;
+  supabaseClient
+    .from('daily_leaderboard')
+    .select('seed_date')
+    .order('seed_date', { ascending: true })
+    .limit(1)
+    .then(function(res) {
+      if (!res.error && res.data && res.data.length > 0) {
+        dailyFirstDate = res.data[0].seed_date;
+        window.hofFirstDate = window.hofFirstDate || dailyFirstDate;
+      }
+    })
+    .catch(function() {});
+})();
 
 // ============================================================
 // SEEDED PRNG (mulberry32)
@@ -670,20 +692,19 @@ canvas.addEventListener('touchstart', (e) => {
     const scaleY = H / rect.height;
     const tapX = (touch.clientX - rect.left) * scaleX;
     const tapY = (touch.clientY - rect.top) * scaleY;
-    // Side-by-side layout: PLAY (left) and DAILY (right) at H * 0.78
+    // Side-by-side layout: CLASSIC (left) and DAILY (right) at H * 0.78
     var mbtnY = H * 0.78;
     var mbtnW = 140;
     var mgap = 12;
     var mbtnH = 44;
+    var classicLeft = W/2 - mbtnW - mgap/2;
     var dailyLeft = W/2 + mgap/2;
     if (tapY > mbtnY - mbtnH/2 && tapY < mbtnY + mbtnH/2) {
       if (tapX > dailyLeft && tapX < dailyLeft + mbtnW) {
         startDailyGame();
-      } else {
+      } else if (tapX > classicLeft && tapX < classicLeft + mbtnW) {
         startNormalGame();
       }
-    } else {
-      startNormalGame();
     }
     return;
   }
@@ -825,30 +846,30 @@ canvas.addEventListener('click', (e) => {
     const scaleY = H / rect.height;
     const clickX = (e.clientX - rect.left) * scaleX;
     const clickY = (e.clientY - rect.top) * scaleY;
-    // Daily challenge button / Play button
+    // Daily challenge button / Play button — only respond to actual button clicks
     if (detectedPlatform === 'mobile') {
-      // Side-by-side layout: PLAY (left) and DAILY (right) at H * 0.78
+      // Side-by-side layout: CLASSIC (left) and DAILY (right) at H * 0.78
       var mbtnY = H * 0.78;
       var mbtnW = 140;
       var mgap = 12;
       var mbtnH = 44;
-      var playLeft = W/2 - mbtnW - mgap/2;
+      var classicLeft = W/2 - mbtnW - mgap/2;
       var dailyLeft = W/2 + mgap/2;
       if (clickY > mbtnY - mbtnH/2 && clickY < mbtnY + mbtnH/2) {
         if (clickX > dailyLeft && clickX < dailyLeft + mbtnW) {
           startDailyGame();
-        } else {
+        } else if (clickX > classicLeft && clickX < classicLeft + mbtnW) {
           startNormalGame();
         }
-      } else {
-        startNormalGame();
       }
     } else {
-      // Desktop: Daily button at (W/2, H * 0.87), size 200x36
-      if (clickY > H * 0.87 - 18 && clickY < H * 0.87 + 18 && clickX > W/2 - 100 && clickX < W/2 + 100) {
-        startDailyGame();
-      } else {
+      // Desktop: CLASSIC button at (W/2, H * 0.78), size 200x44
+      if (clickY > H * 0.78 - 22 && clickY < H * 0.78 + 22 && clickX > W/2 - 100 && clickX < W/2 + 100) {
         startNormalGame();
+      }
+      // Desktop: Daily button at (W/2, H * 0.87), size 200x36
+      else if (clickY > H * 0.87 - 18 && clickY < H * 0.87 + 18 && clickX > W/2 - 100 && clickX < W/2 + 100) {
+        startDailyGame();
       }
     }
     return;
@@ -985,7 +1006,7 @@ function startGame() {
   // Initialize seeded PRNG for daily challenge
   if (isDailyChallenge) {
     dailySeedDate = getDailySeedDate();
-    dailyDayNumber = getDailyDayNumber();
+    dailyDayNumber = getDailyDayNumber() || 0;
     seededRng = mulberry32(hashDateString(dailySeedDate));
   } else {
     seededRng = null;
@@ -3432,7 +3453,10 @@ function drawMenuScreen() {
     ctx.font = 'bold 15px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('DAILY #' + dayNum, 0, 0);
+    ctx.fillText(dayNum ? 'DAILY #' + dayNum : 'DAILY', 0, -4);
+    ctx.font = '8px Arial';
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillText('Hall of Fame', 0, 9);
     ctx.restore();
 
     // No hint text or community stats on mobile — they exist in the HTML overlay
@@ -3474,7 +3498,10 @@ function drawMenuScreen() {
     ctx.font = 'bold 15px Arial';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText('DAILY CHALLENGE #' + dayNum, 0, 0);
+    ctx.fillText(dayNum ? 'DAILY CHALLENGE #' + dayNum : 'DAILY CHALLENGE', 0, -4);
+    ctx.font = '9px Arial';
+    ctx.fillStyle = 'rgba(0,0,0,0.5)';
+    ctx.fillText('Get into today\'s Hall of Fame', 0, 10);
     ctx.restore();
 
     // Hint text
@@ -3997,7 +4024,7 @@ function drawGameOverScreen() {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     var dayNum = getDailyDayNumber();
-    ctx.fillText('DAILY #' + dayNum, 0, 0);
+    ctx.fillText(dayNum ? 'DAILY #' + dayNum : 'DAILY', 0, 0);
   }
   ctx.restore();
 
