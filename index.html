@@ -1,0 +1,1999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Punch, the Monkey - Free Browser Game | Help Baby Punch Escape!</title>
+
+<!-- Core SEO Meta Tags -->
+<meta name="description" content="Play Punch, the Monkey — a free endless runner browser game inspired by Punch (Panchi-kun), the viral baby Japanese macaque from Ichikawa City Zoo who clings to his IKEA plushie. Dodge rocks, collect plushies, escape angry monkeys! #HangInTherePunch">
+<meta name="keywords" content="punch, the monkey, punch the monkey, panchi-kun, パンチくん, baby monkey game, endless runner, browser game, free game, japanese macaque, snow monkey, ichikawa zoo, IKEA djungelskog, monkey plushie, hang in there punch, viral monkey, online game, mobile game">
+<meta name="author" content="Punch the Game">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+<link rel="canonical" href="https://punchthegame.com/">
+
+<!-- Open Graph (Facebook, LinkedIn, Discord, WhatsApp, iMessage, etc.) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Punch, the Monkey">
+<meta property="og:title" content="Punch, the Monkey - Help Baby Punch Escape!">
+<meta property="og:description" content="A free endless runner inspired by Punch, the viral baby monkey from Japan who clings to his IKEA plushie. Dodge rocks, collect plushies, escape angry monkeys! Can you beat the global leaderboard?">
+<meta property="og:url" content="https://punchthegame.com/">
+<meta property="og:image" content="https://punchthegame.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Punch, the Monkey - A baby monkey running through a jungle while angry monkeys chase him and orange plushies float around">
+<meta property="og:locale" content="en_US">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Punch, the Monkey - Free Browser Game">
+<meta name="twitter:description" content="Help baby Punch escape angry monkeys in this free endless runner! Inspired by the viral Japanese macaque from Ichikawa Zoo. Play now — no download needed.">
+<meta name="twitter:image" content="https://punchthegame.com/og-image.png">
+<meta name="twitter:image:alt" content="Punch, the Monkey game - baby monkey running through jungle">
+
+<!-- Favicon & Icons -->
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+<!-- Web App Manifest -->
+<link rel="manifest" href="/manifest.json">
+
+<!-- Theme & Mobile App Meta -->
+<meta name="theme-color" content="#fbbf24">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Punch Runner">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="application-name" content="Punch, the Monkey">
+<meta name="msapplication-TileColor" content="#111827">
+
+<!-- Additional SEO signals -->
+<meta name="rating" content="general">
+<meta name="language" content="English">
+<meta name="revisit-after" content="3 days">
+<meta name="category" content="Games">
+<meta name="classification" content="Game">
+
+<!-- Structured Data (JSON-LD) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  "name": "Punch, the Monkey",
+  "alternateName": ["Punch the Game", "Punch Runner"],
+  "description": "A free endless runner browser game inspired by Punch (Panchi-kun), the viral baby Japanese macaque from Ichikawa City Zoo, Japan. Help baby Punch dodge rocks, collect his beloved IKEA plushies, and escape angry adult monkeys chasing him through the jungle.",
+  "url": "https://punchthegame.com/",
+  "image": "https://punchthegame.com/og-image.png",
+  "genre": ["Endless Runner", "Arcade", "Casual"],
+  "gamePlatform": ["Web Browser", "Mobile Browser"],
+  "applicationCategory": "Game",
+  "operatingSystem": "Any",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD",
+    "availability": "https://schema.org/InStock"
+  },
+  "author": {
+    "@type": "Organization",
+    "name": "Punch the Game",
+    "url": "https://punchthegame.com/"
+  },
+  "about": {
+    "@type": "Thing",
+    "name": "Panchi-kun (Punch)",
+    "description": "A baby Japanese macaque born July 25, 2025 at Ichikawa City Zoo, Japan. Rejected by his mother, he found comfort in an IKEA Djungelskog orangutan plushie and became a viral internet sensation. #HangInTherePunch"
+  },
+  "keywords": "punch monkey, panchi-kun, baby monkey, endless runner, browser game, japanese macaque, IKEA plushie, hang in there punch",
+  "inLanguage": "en",
+  "isAccessibleForFree": true,
+  "isFamilyFriendly": true,
+  "playMode": "SinglePlayer",
+  "numberOfPlayers": {
+    "@type": "QuantitativeValue",
+    "value": 1
+  }
+}
+</script>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WZKXJPN3TX"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-WZKXJPN3TX');
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #111827;
+    font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+    color: #d4d4d8;
+    height: 100vh;
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  /* ---------- MAIN LAYOUT ---------- */
+  .page-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    gap: 24px;
+    padding: 16px;
+  }
+
+  /* Side panels - fill remaining space, scroll internally */
+  .panel {
+    flex: 1;
+    min-width: 0;
+    height: calc(100vh - 32px);
+    max-height: 900px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 4px;
+    /* hide scrollbar but keep functionality */
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.08) transparent;
+  }
+
+  .panel::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  .panel::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .panel::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.08);
+    border-radius: 2px;
+  }
+
+  .panel-card {
+    background: linear-gradient(135deg, #1C1F2E 0%, #181B28 100%);
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+    padding: 24px;
+    margin-bottom: 14px;
+  }
+
+  .panel-card:last-child {
+    margin-bottom: 0;
+  }
+
+  .panel-card h2 {
+    font-size: 20px;
+    font-weight: 800;
+    margin-bottom: 10px;
+    line-height: 1.3;
+  }
+
+  .panel-card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #e4e4e7;
+  }
+
+  .panel-card p {
+    font-size: 15px;
+    line-height: 1.65;
+    color: #a1a1aa;
+    margin-bottom: 8px;
+  }
+
+  .panel-card p:last-of-type {
+    margin-bottom: 0;
+  }
+
+  /* ---------- LEFT PANEL ---------- */
+  .left-panel .panel-card:first-child h2 {
+    color: #fbbf24;
+  }
+
+  .game-info-card p,
+  .game-info-card .mode-section p {
+    font-size: 14px;
+  }
+
+  .highlight {
+    color: #fbbf24;
+    font-weight: 600;
+  }
+
+  .cta-line {
+    color: #c084fc;
+    font-weight: 600;
+    font-style: italic;
+    margin-top: 12px;
+  }
+
+  .mode-section {
+    margin-top: 10px;
+    padding: 8px 10px;
+    border-radius: 8px;
+    background: rgba(255,255,255,0.03);
+    border-left: 3px solid;
+  }
+  .mode-section.mode-endless {
+    border-color: #EF4444;
+  }
+  .mode-section.mode-daily {
+    border-color: #fbbf24;
+  }
+  .mode-tag {
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+  }
+  .mode-endless .mode-tag { color: #EF4444; }
+  .mode-daily .mode-tag { color: #fbbf24; }
+  .mode-section p {
+    margin: 2px 0 0;
+    font-size: 15px;
+    line-height: 1.45;
+    color: #a1a1aa;
+  }
+
+  /* Controls */
+  .controls-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+  }
+
+  .control-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .key-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 38px;
+    height: 32px;
+    padding: 0 8px;
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #e4e4e7;
+    white-space: nowrap;
+  }
+
+  .control-label {
+    font-size: 14px;
+    color: #a1a1aa;
+  }
+
+  /* ---------- PANEL LEADERBOARD ---------- */
+  .panel-leaderboard {
+    display: flex;
+    gap: 12px;
+  }
+  .panel-leaderboard .lb-col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .panel-leaderboard .lb-loading {
+    width: 100%;
+    text-align: center;
+    color: #666;
+    font-size: 13px;
+    padding: 12px 0;
+  }
+  .panel-leaderboard .lb-entry {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  .panel-leaderboard .lb-entry:nth-child(odd) {
+    background: rgba(255,255,255,0.03);
+  }
+  .panel-leaderboard .lb-rank {
+    font-weight: 700;
+    min-width: 22px;
+    text-align: right;
+    color: #888;
+  }
+  .panel-leaderboard .lb-rank.gold { color: #FFD700; }
+  .panel-leaderboard .lb-rank.silver { color: #C0C0C0; }
+  .panel-leaderboard .lb-rank.bronze { color: #CD7F32; }
+  .panel-leaderboard .lb-name {
+    flex: 1;
+    color: #d4d4d8;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .panel-leaderboard .lb-score {
+    font-weight: 600;
+    color: #fbbf24;
+    font-variant-numeric: tabular-nums;
+  }
+  .panel-leaderboard .lb-date {
+    font-size: 11px;
+    color: #666;
+    white-space: nowrap;
+    margin-right: 6px;
+  }
+  .leaderboard-card h3 {
+    margin-bottom: 8px;
+  }
+
+  /* ---------- LEADERBOARD TABS ---------- */
+  .lb-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+  }
+  .lb-tab {
+    flex: 1;
+    padding: 6px 0;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    background: none;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    font-family: inherit;
+  }
+  .lb-tab:hover {
+    color: #999;
+  }
+  .lb-tab.active {
+    color: #fbbf24;
+    border-bottom-color: #fbbf24;
+  }
+
+  /* ---------- LEADERBOARD MODE TABS (Global / Daily) ---------- */
+  .lb-mode-tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 10px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 8px;
+    padding: 3px;
+  }
+  .lb-mode-tab {
+    flex: 1;
+    padding: 6px 0;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 700;
+    color: #666;
+    cursor: pointer;
+    border: none;
+    border-radius: 6px;
+    background: none;
+    font-family: inherit;
+    transition: color 0.2s, background 0.2s;
+  }
+  .lb-mode-tab:hover {
+    color: #999;
+  }
+  .lb-mode-tab.active {
+    color: #fbbf24;
+    background: rgba(251, 191, 36, 0.12);
+  }
+  .lb-daily-header {
+    text-align: center;
+    padding: 6px 0 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #fbbf24;
+  }
+  .lb-daily-stats {
+    text-align: center;
+    padding: 6px 0 0;
+    font-size: 11px;
+    color: #666;
+  }
+
+  /* ---------- HALL OF FAME ---------- */
+  .hof-card {
+    background: linear-gradient(135deg, #1E2030 0%, #1C1F2E 100%);
+    border: 1px solid rgba(251, 191, 36, 0.15);
+  }
+  .hof-title {
+    color: #fbbf24;
+    font-size: 18px;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .hof-date-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .hof-arrow {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.05);
+    color: #e4e4e7;
+    font-size: 20px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: inherit;
+    transition: background 0.15s, border-color 0.15s;
+    line-height: 1;
+    padding: 0;
+  }
+  .hof-arrow:hover {
+    background: rgba(255,255,255,0.1);
+    border-color: rgba(255,255,255,0.2);
+  }
+  .hof-arrow:disabled {
+    opacity: 0.25;
+    cursor: not-allowed;
+  }
+  .hof-date-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fbbf24;
+    min-width: 160px;
+    text-align: center;
+  }
+  .hof-stats {
+    text-align: center;
+    padding: 6px 0 0;
+    font-size: 11px;
+    color: #666;
+  }
+
+  /* ---------- GLOBAL STATS (batched cycling grid) ---------- */
+  .global-stats {
+    position: relative;
+    overflow: hidden;
+  }
+  .global-stats .stats-loading {
+    text-align: center;
+    color: #666;
+    font-size: 13px;
+    padding: 12px 0;
+  }
+  .stats-batch {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    transition: none; /* animated via JS */
+  }
+  .stats-batch.stats-batch-abs {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+  }
+  .stat-item {
+    background: rgba(255,255,255,0.03);
+    border-radius: 8px;
+    padding: 10px 12px;
+    text-align: center;
+  }
+  .stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: #fbbf24;
+    display: block;
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-label {
+    font-size: 11px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 2px;
+    display: block;
+  }
+  .stat-item.full-width {
+    grid-column: 1 / -1;
+  }
+  .stats-card h3 {
+    margin-bottom: 10px;
+  }
+
+  /* ---------- CONTROLS + STATS SIDE-BY-SIDE ---------- */
+  .controls-stats-row {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 14px;
+  }
+  .controls-stats-row .panel-card {
+    flex: 1;
+    min-width: 0;
+    margin-bottom: 0;
+  }
+  .controls-stats-row .stat-item {
+    padding: 7px 6px;
+  }
+  .controls-stats-row .stat-value {
+    font-size: 16px;
+  }
+  .controls-stats-row .stat-label {
+    font-size: 10px;
+  }
+  .controls-stats-row .stats-batch {
+    gap: 6px;
+  }
+
+  /* ---------- GAME COLUMN ---------- */
+  .game-column {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #gameContainer {
+    position: relative;
+    /* Scale to fit viewport height minus padding */
+    height: calc(100vh - 32px);
+    aspect-ratio: 500 / 900;
+    max-width: 500px;
+    max-height: 900px;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow:
+      0 0 50px rgba(99, 102, 241, 0.1),
+      0 0 0 1px rgba(255,255,255,0.06);
+  }
+
+  canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ---------- RIGHT PANEL ---------- */
+  .right-panel .story-card h2 {
+    color: #f87171;
+  }
+
+  .right-panel .story-card p strong {
+    color: #e4e4e7;
+  }
+
+  .hashtag {
+    display: inline-block;
+    background: rgba(248, 113, 113, 0.12);
+    color: #f87171;
+    font-weight: 700;
+    font-size: 14px;
+    padding: 4px 10px;
+    border-radius: 5px;
+    margin-top: 8px;
+  }
+
+  /* Donate card */
+  .donate-card {
+    background: linear-gradient(135deg, #1E2030 0%, #1C1F2E 100%);
+    border: 1px solid rgba(248, 113, 113, 0.2);
+    text-align: center;
+  }
+
+  .donate-card h3 {
+    color: #fbbf24;
+    font-size: 18px;
+    margin-bottom: 5px;
+  }
+
+  .donate-card p {
+    font-size: 14px;
+    color: #a1a1aa;
+    margin-bottom: 12px;
+  }
+
+  .donate-btn {
+    display: inline-block;
+    background: linear-gradient(135deg, #FF5E5B, #e04e4b);
+    color: #fff;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 18px;
+    padding: 12px 32px;
+    border-radius: 10px;
+    transition: transform 0.15s, box-shadow 0.15s;
+    box-shadow: 0 4px 20px rgba(255, 94, 91, 0.3);
+  }
+
+  .donate-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 28px rgba(255, 94, 91, 0.45);
+  }
+
+  .split-bar {
+    display: flex;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 12px;
+    margin-bottom: 4px;
+  }
+
+  .split-bar .portion-punch {
+    flex: 75;
+    background: #f87171;
+  }
+
+  .split-bar .portion-dev {
+    flex: 25;
+    background: #3f3f46;
+  }
+
+  .split-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: #71717a;
+  }
+
+  .split-labels span:first-child {
+    color: #f87171;
+    font-weight: 600;
+  }
+
+  .split-note {
+    display: block;
+    font-size: 13px;
+    color: #52525b;
+    margin-top: 8px;
+    font-weight: 500;
+  }
+
+  /* ---------- DONATE GATE SYSTEM ---------- */
+  .donate-gate {
+    margin: 14px 0;
+  }
+
+  /* Locked state: show lock UI, hide button */
+  .donate-gate .donate-btn-unlocked {
+    display: none;
+  }
+
+  .donate-gate.unlocked .donate-locked {
+    display: none;
+  }
+
+  .donate-gate.unlocked .donate-btn-unlocked {
+    display: inline-block;
+  }
+
+  .donate-locked {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 16px 12px;
+    background: rgba(255,255,255,0.03);
+    border: 1px dashed rgba(255,255,255,0.12);
+    border-radius: 10px;
+  }
+
+  .lock-icon {
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .lock-label {
+    font-size: 14px;
+    font-weight: 700;
+    color: #fbbf24;
+  }
+
+  .lock-progress-wrap {
+    width: 100%;
+    max-width: 200px;
+    height: 6px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 2px;
+  }
+
+  .lock-progress-bar {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #fbbf24, #f59e0b);
+    border-radius: 3px;
+    transition: width 0.6s ease;
+  }
+
+  .lock-sublabel {
+    font-size: 12px;
+    color: #71717a;
+    font-weight: 500;
+  }
+
+  /* Mobile bar locked state */
+  .mobile-bar-btn.btn-donate.locked {
+    background: #2a2a3e;
+    color: #71717a;
+    box-shadow: none;
+    pointer-events: none;
+  }
+
+  /* ---------- MOBILE OVERLAY SYSTEM ---------- */
+  .mobile-bar {
+    display: none;
+  }
+
+  .mobile-fab {
+    display: none;
+  }
+
+  .mobile-fab-menu {
+    display: none;
+  }
+
+  .mobile-overlay {
+    display: none;
+  }
+
+  /* ---------- RESPONSIVE: NARROW DESKTOP ---------- */
+  @media (max-width: 1100px) {
+    .panel-card { padding: 18px; }
+    .panel-card h2 { font-size: 18px; }
+    .panel-card p { font-size: 14px; line-height: 1.6; }
+    .panel-leaderboard .lb-entry { font-size: 12px; }
+    .control-label { font-size: 13px; }
+    .page-wrapper { gap: 16px; padding: 12px; }
+    .panel { height: calc(100vh - 24px); }
+    #gameContainer { height: calc(100vh - 24px); }
+    .controls-stats-row { gap: 10px; }
+    .controls-stats-row .stat-value { font-size: 14px; }
+    .controls-stats-row .stat-label { font-size: 9px; }
+    .controls-stats-row .stat-item { padding: 5px 4px; }
+    .controls-stats-row .stats-batch { gap: 4px; }
+  }
+
+  /* ---------- RESPONSIVE: TABLET ---------- */
+  @media (max-width: 860px) {
+    .panel { display: none; }
+    .page-wrapper {
+      padding: 0;
+      gap: 0;
+    }
+    .game-column {
+      width: 100%;
+      height: 100vh;
+    }
+    #gameContainer {
+      height: 100vh;
+      max-height: none;
+      border-radius: 0;
+      box-shadow: none;
+      margin: 0 auto;
+    }
+
+    /* Floating menu button */
+    .mobile-fab {
+      display: flex;
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 150;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(15, 15, 26, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #e4e4e7;
+      font-size: 18px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: inherit;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.15s, background 0.15s;
+      line-height: 1;
+    }
+
+    .mobile-fab.mobile-restart {
+      right: auto;
+      left: 10px;
+      font-size: 20px;
+    }
+
+    .mobile-fab:active {
+      transform: scale(0.9);
+    }
+
+    .mobile-fab-menu {
+      display: none;
+      position: fixed;
+      top: 52px;
+      right: 10px;
+      z-index: 150;
+      background: rgba(15, 15, 26, 0.92);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 6px;
+      flex-direction: column;
+      gap: 4px;
+      min-width: 160px;
+    }
+
+    .mobile-fab-menu.active {
+      display: flex;
+    }
+
+    .mobile-fab-menu-item {
+      display: block;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      color: #e4e4e7;
+      background: transparent;
+      text-align: left;
+      transition: background 0.1s;
+      white-space: nowrap;
+    }
+
+    .mobile-fab-menu-item:active {
+      background: rgba(255,255,255,0.08);
+    }
+
+    .mobile-fab-menu-item.menu-donate {
+      color: #f87171;
+      font-weight: 700;
+    }
+
+    .mobile-fab-menu-item.menu-donate.locked {
+      color: #52525b;
+    }
+
+    .mobile-bar {
+      display: none !important;
+    }
+
+    /* Mobile overlay panels */
+    .mobile-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 200;
+      background: rgba(15, 15, 26, 0.97);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      overflow-y: auto;
+      padding: 20px 20px 50px;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .mobile-overlay.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .mobile-overlay .panel-card {
+      max-width: 480px;
+      margin: 0 auto 12px;
+    }
+
+    .overlay-close {
+      display: block;
+      max-width: 480px;
+      margin: 0 auto 16px;
+      text-align: right;
+    }
+
+    .overlay-close button {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: #e4e4e7;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: inherit;
+    }
+  }
+</style>
+</head>
+<body>
+<!-- SEO: Hidden h1 for search engines (game title is rendered on canvas, not in DOM) -->
+<h1 style="position:absolute;left:-9999px;top:-9999px;width:1px;height:1px;overflow:hidden;">
+  Punch, the Monkey - Free Endless Runner Browser Game
+</h1>
+<div class="page-wrapper">
+
+  <!-- ======== LEFT PANEL ======== -->
+  <div class="panel left-panel">
+
+    <div class="panel-card game-info-card">
+      <h2>Punch, the Monkey</h2>
+      <p>
+        Help <span class="highlight">Punch</span>, a tiny baby monkey, dodge rocks
+        and collect plushies while outrunning a gang of angry adults.
+        The longer you survive, the faster it gets.
+      </p>
+      <div class="mode-section mode-endless">
+        <div class="mode-tag">Classic Mode</div>
+        <p>Classic endless runner. Beat your high score and climb the global leaderboard.</p>
+      </div>
+      <div class="mode-section mode-daily">
+        <div class="mode-tag">Daily Challenge</div>
+        <p>
+          Same run for everyone, every day. Obstacles and plushies are identical
+          for all players &mdash; compete for the top daily score.
+          New challenge drops at midnight UTC. Top scores make the <span class="highlight">Hall of Fame</span>.
+        </p>
+      </div>
+      <p class="cta-line">
+        Every game helps spread the word about the real Punch.
+      </p>
+    </div>
+
+    <div class="controls-stats-row">
+      <div class="panel-card">
+        <h3>Controls</h3>
+        <div class="controls-grid">
+          <div class="control-row">
+            <span class="key-badge">&larr;</span>
+            <span class="key-badge">A</span>
+            <span class="control-label">Move left</span>
+          </div>
+          <div class="control-row">
+            <span class="key-badge">&rarr;</span>
+            <span class="key-badge">D</span>
+            <span class="control-label">Move right</span>
+          </div>
+          <div class="control-row">
+            <span class="key-badge">&uarr;</span>
+            <span class="key-badge">W</span>
+            <span class="control-label">Jump</span>
+          </div>
+          <div class="control-row">
+            <span class="key-badge">&darr;</span>
+            <span class="key-badge">S</span>
+            <span class="control-label">Roll</span>
+          </div>
+          <div class="control-row">
+            <span class="key-badge">R</span>
+            <span class="control-label">Restart</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-card stats-card">
+        <h3>Community</h3>
+        <div id="panelGlobalStats" class="global-stats">
+          <div class="stats-loading">Loading...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel-card leaderboard-card">
+      <h3>Leaderboard</h3>
+      <div class="lb-mode-tabs">
+        <button class="lb-mode-tab active" data-mode="global" data-container="panelLbContainer" onclick="switchLbMode(this)">Global</button>
+        <button class="lb-mode-tab" data-mode="daily" data-container="panelLbContainer" onclick="switchLbMode(this)">Daily</button>
+      </div>
+      <div id="panelLbContainer">
+        <div class="lb-global-view">
+          <div class="lb-tabs">
+            <button class="lb-tab active" data-target="panelLeaderboard" data-platform="pc" onclick="switchLbTab(this)">PC</button>
+            <button class="lb-tab" data-target="panelLeaderboard" data-platform="mobile" onclick="switchLbTab(this)">Mobile</button>
+          </div>
+          <div id="panelLeaderboard" class="panel-leaderboard">
+            <div class="lb-loading">Loading...</div>
+          </div>
+        </div>
+        <div class="lb-daily-view" style="display:none;">
+          <div class="lb-daily-header" id="panelDailyHeader"></div>
+          <div class="lb-tabs">
+            <button class="lb-tab active" data-target="panelDailyLeaderboard" data-platform="pc" data-daily="true" onclick="switchDailyLbTab(this)">PC</button>
+            <button class="lb-tab" data-target="panelDailyLeaderboard" data-platform="mobile" data-daily="true" onclick="switchDailyLbTab(this)">Mobile</button>
+          </div>
+          <div id="panelDailyLeaderboard" class="panel-leaderboard">
+            <div class="lb-loading">Loading...</div>
+          </div>
+          <div class="lb-daily-stats" id="panelDailyStats"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ======== GAME ======== -->
+  <div class="game-column">
+    <div id="gameContainer">
+      <canvas id="gameCanvas"></canvas>
+      <!-- Hidden input for mobile keyboard support during name entry -->
+      <input type="text" id="mobileNameInput" maxlength="15" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" dir="ltr" inputmode="latin" enterkeyhint="done"
+        style="position:absolute;top:-9999px;left:-9999px;opacity:0;width:1px;height:1px;pointer-events:none;text-align:left;">
+    </div>
+  </div>
+
+  <!-- ======== RIGHT PANEL ======== -->
+  <div class="panel right-panel">
+
+    <div class="panel-card story-card">
+      <h2>The Story of Punch</h2>
+      <p>
+        <strong>Panchi-kun</strong> (that's his real name) was born on July 25, 2025,
+        at the Ichikawa City Zoo in Japan. He's a baby Japanese macaque &mdash; a snow monkey &mdash;
+        and from day one, life dealt him a rough hand. His mother showed no interest in raising him,
+        and by the very next day, zookeepers stepped in with baby bottles and round-the-clock care.
+      </p>
+      <p>
+        When introduced to the other 60 monkeys on Monkey Mountain, he struggled.
+        No mother meant no protection, no social cues, no warmth to cling to. He showed signs
+        of anxiety and isolation &mdash; a tiny baby in a world of adults who didn't always welcome him.
+      </p>
+      <p>
+        Then the zookeepers gave him an <strong>IKEA Djungelskog orangutan plushie</strong>
+        &mdash; a big, soft, orange stuffed animal. Punch latched on immediately, carried it
+        everywhere, clung to it like a surrogate mother, and slowly started coming out of his shell.
+        The internet named it <strong>"Oran-Mama."</strong>
+      </p>
+      <p>
+        In February 2026, the zoo shared his story online. It exploded.
+        <strong>#HangInTherePunch</strong> trended worldwide. IKEA visited the zoo and
+        donated 33 more stuffed toys. Huge lines formed outside. People everywhere
+        fell in love with this tiny, worried-looking baby hugging his plushie for dear life.
+      </p>
+      <p>
+        Despite everything, his keepers say he's <strong>"mentally strong."</strong>
+        He's outgoing, he's a fighter, and he's learning to navigate the troop on his own terms.
+        He just needed a little help &mdash; and a really good hug.
+      </p>
+      <span class="hashtag">#HangInTherePunch</span>
+    </div>
+
+    <div class="panel-card hof-card">
+      <h3 class="hof-title">Hall of Fame</h3>
+      <div class="hof-date-nav">
+        <button class="hof-arrow hof-prev" id="hofPrev" onclick="hofPrevDay()">&lsaquo;</button>
+        <span class="hof-date-label" id="hofDateLabel">Loading...</span>
+        <button class="hof-arrow hof-next" id="hofNext" onclick="hofNextDay()">&rsaquo;</button>
+      </div>
+      <div class="lb-tabs">
+        <button class="lb-tab active" data-target="hofLeaderboard" data-platform="pc" onclick="switchHofTab(this)">PC</button>
+        <button class="lb-tab" data-target="hofLeaderboard" data-platform="mobile" onclick="switchHofTab(this)">Mobile</button>
+      </div>
+      <div id="hofLeaderboard" class="panel-leaderboard">
+        <div class="lb-loading">Loading...</div>
+      </div>
+      <div class="hof-stats" id="hofStats"></div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ======== MOBILE FLOATING MENU ======== -->
+<button class="mobile-fab mobile-restart" id="mobileRestart" onclick="restartGame()" style="display:none;">&#x21BA;</button>
+<button class="mobile-fab" id="mobileFab" onclick="toggleFabMenu()">&#x2630;</button>
+<div class="mobile-fab-menu" id="mobileFabMenu">
+  <button class="mobile-fab-menu-item" onclick="toggleFabMenu(); toggleOverlay('info-overlay')">How to Play</button>
+  <button class="mobile-fab-menu-item" onclick="toggleFabMenu(); toggleOverlay('story-overlay')">Punch's Story</button>
+  <button class="mobile-fab-menu-item" onclick="toggleFabMenu(); toggleOverlay('hof-overlay')">Hall of Fame</button>
+</div>
+
+<!-- ======== MOBILE BOTTOM BAR (hidden, kept for compat) ======== -->
+<div class="mobile-bar">
+  <button class="mobile-bar-btn btn-info" onclick="toggleOverlay('info-overlay')">How to Play</button>
+  <button class="mobile-bar-btn btn-info" onclick="toggleOverlay('story-overlay')">Punch's Story</button>
+  <a class="mobile-bar-btn btn-donate" id="mobileBarDonate" href="https://ko-fi.com/punchthegame" target="_blank" rel="noopener">Donate</a>
+</div>
+
+<!-- ======== MOBILE INFO OVERLAY ======== -->
+<div class="mobile-overlay" id="info-overlay">
+  <div class="overlay-close"><button onclick="toggleOverlay('info-overlay')">Close</button></div>
+
+  <div class="panel-card">
+    <h2 style="color:#fbbf24">Punch, the Monkey</h2>
+    <p>
+      Help <span class="highlight">Punch</span>, a tiny baby monkey, dodge rocks
+      and collect plushies while outrunning angry adults.
+      The longer you survive, the faster it gets.
+    </p>
+    <div class="mode-section mode-endless">
+      <div class="mode-tag">Classic Mode</div>
+      <p>Classic endless runner. Beat your high score and climb the global leaderboard.</p>
+    </div>
+    <div class="mode-section mode-daily">
+      <div class="mode-tag">Daily Challenge</div>
+      <p>
+        Same run for everyone, every day. Obstacles and plushies are identical
+        for all players &mdash; compete for the top daily score.
+        New challenge at midnight UTC. Top scores make the <span class="highlight">Hall of Fame</span>.
+      </p>
+    </div>
+    <p class="cta-line">
+      Every game helps spread the word about the real Punch.
+    </p>
+  </div>
+
+  <div class="panel-card">
+    <h3>Controls</h3>
+    <div class="controls-grid">
+      <div class="control-row">
+        <span class="key-badge">Swipe L/R</span>
+        <span class="control-label">Switch lanes</span>
+      </div>
+      <div class="control-row">
+        <span class="key-badge">Swipe Up</span>
+        <span class="control-label">Jump over rocks</span>
+      </div>
+      <div class="control-row">
+        <span class="key-badge">Swipe Down</span>
+        <span class="control-label">Roll under logs</span>
+      </div>
+      <div class="control-row">
+        <span class="key-badge">&#x21BA;</span>
+        <span class="control-label">Restart (top-left button)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel-card stats-card">
+    <h3>Community</h3>
+    <div id="mobileGlobalStats" class="global-stats">
+      <div class="stats-loading">Loading...</div>
+    </div>
+  </div>
+
+  <div class="panel-card leaderboard-card">
+    <h3>Leaderboard</h3>
+    <div class="lb-mode-tabs">
+      <button class="lb-mode-tab active" data-mode="global" data-container="mobileLbContainer" onclick="switchLbMode(this)">Global</button>
+      <button class="lb-mode-tab" data-mode="daily" data-container="mobileLbContainer" onclick="switchLbMode(this)">Daily</button>
+    </div>
+    <div id="mobileLbContainer">
+      <div class="lb-global-view">
+        <div class="lb-tabs">
+          <button class="lb-tab" data-target="mobileLeaderboard" data-platform="pc" onclick="switchLbTab(this)">PC</button>
+          <button class="lb-tab active" data-target="mobileLeaderboard" data-platform="mobile" onclick="switchLbTab(this)">Mobile</button>
+        </div>
+        <div id="mobileLeaderboard" class="panel-leaderboard">
+          <div class="lb-loading">Loading...</div>
+        </div>
+      </div>
+      <div class="lb-daily-view" style="display:none;">
+        <div class="lb-daily-header" id="mobileDailyHeader"></div>
+        <div class="lb-tabs">
+          <button class="lb-tab" data-target="mobileDailyLeaderboard" data-platform="pc" data-daily="true" onclick="switchDailyLbTab(this)">PC</button>
+          <button class="lb-tab active" data-target="mobileDailyLeaderboard" data-platform="mobile" data-daily="true" onclick="switchDailyLbTab(this)">Mobile</button>
+        </div>
+        <div id="mobileDailyLeaderboard" class="panel-leaderboard">
+          <div class="lb-loading">Loading...</div>
+        </div>
+        <div class="lb-daily-stats" id="mobileDailyStats"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======== MOBILE STORY OVERLAY ======== -->
+<div class="mobile-overlay" id="story-overlay">
+  <div class="overlay-close"><button onclick="toggleOverlay('story-overlay')">Close</button></div>
+
+  <div class="panel-card story-card">
+    <h2 style="color:#f87171">The Story of Punch</h2>
+    <p>
+      <strong>Panchi-kun</strong> was born on July 25, 2025 at the Ichikawa City Zoo in Japan.
+      His mother showed no interest in raising him. Zookeepers stepped in with baby bottles
+      and round-the-clock care.
+    </p>
+    <p>
+      Among the 60 monkeys on Monkey Mountain, he struggled &mdash; no protection, no social cues.
+      Then they gave him an <strong>IKEA orangutan plushie</strong>. He latched on immediately,
+      carrying it everywhere like a surrogate mother. The internet named it <strong>"Oran-Mama."</strong>
+    </p>
+    <p>
+      In February 2026, his story went viral. <strong>#HangInTherePunch</strong> trended worldwide.
+      IKEA donated 33 more stuffed toys. His keepers say he's <strong>"mentally strong"</strong>
+      &mdash; a fighter learning to navigate the world on his own terms.
+    </p>
+    <span class="hashtag">#HangInTherePunch</span>
+  </div>
+</div>
+
+<!-- ======== MOBILE HALL OF FAME OVERLAY ======== -->
+<div class="mobile-overlay" id="hof-overlay">
+  <div class="overlay-close"><button onclick="toggleOverlay('hof-overlay')">Close</button></div>
+
+  <div class="panel-card hof-card">
+    <h3 class="hof-title">Hall of Fame</h3>
+    <div class="hof-date-nav">
+      <button class="hof-arrow hof-prev" id="hofPrevMobile" onclick="hofPrevDay()">&lsaquo;</button>
+      <span class="hof-date-label" id="hofDateLabelMobile">Loading...</span>
+      <button class="hof-arrow hof-next" id="hofNextMobile" onclick="hofNextDay()">&rsaquo;</button>
+    </div>
+    <div class="lb-tabs">
+      <button class="lb-tab active" data-target="hofLeaderboardMobile" data-platform="pc" onclick="switchHofTab(this)">PC</button>
+      <button class="lb-tab" data-target="hofLeaderboardMobile" data-platform="mobile" onclick="switchHofTab(this)">Mobile</button>
+    </div>
+    <div id="hofLeaderboardMobile" class="panel-leaderboard">
+      <div class="lb-loading">Loading...</div>
+    </div>
+    <div class="hof-stats" id="hofStatsMobile"></div>
+  </div>
+</div>
+
+<script>
+function toggleOverlay(id) {
+  const el = document.getElementById(id);
+  // Close all overlays first
+  document.querySelectorAll('.mobile-overlay').forEach(o => {
+    if (o.id !== id) o.classList.remove('active');
+  });
+  el.classList.toggle('active');
+}
+
+// ---------- FLOATING MENU ----------
+function toggleFabMenu() {
+  document.getElementById('mobileFabMenu').classList.toggle('active');
+}
+
+// ---------- RESTART BUTTON ----------
+function restartGame() {
+  if (typeof startGame === 'function') startGame();
+}
+
+// Close fab menu when tapping outside
+document.addEventListener('click', function(e) {
+  const fab = document.getElementById('mobileFab');
+  const menu = document.getElementById('mobileFabMenu');
+  if (fab && menu && !fab.contains(e.target) && !menu.contains(e.target)) {
+    menu.classList.remove('active');
+  }
+});
+
+// ---------- DONATE GATE (legacy, elements removed) ----------
+// Kept minimal for compatibility — game.js may dispatch highScoreUpdated
+function updateDonateGate() {}
+
+// Run on load
+updateDonateGate();
+
+// Listen for high score updates from game.js
+window.addEventListener('highScoreUpdated', updateDonateGate);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+// Panel leaderboard (top 20 per platform, shared across desktop panel + mobile overlay)
+(function() {
+  const SB_URL = 'https://oruxxgyqjxcziaqxzrdg.supabase.co';
+  const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9ydXh4Z3lxanhjemlhcXh6cmRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE4NjM3NjIsImV4cCI6MjA4NzQzOTc2Mn0.cGWDNCe5BFJtEjzy1gz4lboUtijurDGm3JiOZBfcCAc';
+  let sb;
+  try { sb = window.supabase.createClient(SB_URL, SB_KEY); } catch(e) { return; }
+
+  // Cache both platform datasets
+  let lbCache = { pc: null, mobile: null };
+
+  // Track which tab is active per container
+  let activeTab = {
+    panelLeaderboard: 'pc',
+    mobileLeaderboard: 'mobile'
+  };
+
+  function escapeHTML(str) {
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+
+  function rankClass(i) {
+    if (i === 0) return 'gold';
+    if (i === 1) return 'silver';
+    if (i === 2) return 'bronze';
+    return '';
+  }
+
+  function renderLeaderboard(containerId, data) {
+    const el = document.getElementById(containerId);
+    if (!el) return;
+    if (!data || data.length === 0) {
+      el.innerHTML = '<div class="lb-loading">No scores yet. Be the first!</div>';
+      return;
+    }
+    var isMobile = containerId.indexOf('mobile') === 0;
+    var entries = isMobile ? data.slice(0, 10) : data;
+
+    function entryHTML(row, i) {
+      var dateStr = '';
+      if (row.created_at) {
+        var d = new Date(row.created_at);
+        var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+        dateStr = months[d.getMonth()] + ' ' + d.getDate();
+      }
+      return '<div class="lb-entry">'
+        + '<span class="lb-rank ' + rankClass(i) + '">' + (i + 1) + '.</span>'
+        + '<span class="lb-name">' + escapeHTML(row.name) + '</span>'
+        + '<span class="lb-date">' + dateStr + '</span>'
+        + '<span class="lb-score">' + row.score.toLocaleString() + '</span>'
+        + '</div>';
+    }
+
+    if (isMobile) {
+      el.innerHTML = '<div class="lb-col">' + entries.map(function(row, i) {
+        return entryHTML(row, i);
+      }).join('') + '</div>';
+    } else {
+      var half = Math.ceil(entries.length / 2);
+      var left = entries.slice(0, half);
+      var right = entries.slice(half);
+      el.innerHTML = '<div class="lb-col">' + left.map(function(row, i) {
+        return entryHTML(row, i);
+      }).join('') + '</div>'
+      + '<div class="lb-col">' + right.map(function(row, i) {
+        return entryHTML(row, i + half);
+      }).join('') + '</div>';
+    }
+  }
+
+  async function fetchPlatformLeaderboard(platform) {
+    try {
+      const { data, error } = await sb
+        .from('leaderboard')
+        .select('name, score, created_at')
+        .eq('platform', platform)
+        .order('score', { ascending: false })
+        .limit(20);
+      if (!error && data) {
+        lbCache[platform] = data;
+      }
+    } catch(e) {
+      console.warn('Panel leaderboard fetch failed:', e);
+    }
+  }
+
+  async function fetchAllLeaderboards() {
+    await Promise.all([fetchPlatformLeaderboard('pc'), fetchPlatformLeaderboard('mobile')]);
+    // Render whichever tab is active for each container
+    renderLeaderboard('panelLeaderboard', lbCache[activeTab.panelLeaderboard]);
+    renderLeaderboard('mobileLeaderboard', lbCache[activeTab.mobileLeaderboard]);
+  }
+
+  // Expose tab switching globally
+  window.switchLbTab = function(btn) {
+    var platform = btn.getAttribute('data-platform');
+    var target = btn.getAttribute('data-target');
+    // Update active tab state
+    activeTab[target] = platform;
+    // Update tab button styles
+    var tabs = btn.parentElement.querySelectorAll('.lb-tab');
+    tabs.forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+    // Render from cache
+    if (lbCache[platform]) {
+      renderLeaderboard(target, lbCache[platform]);
+    } else {
+      var el = document.getElementById(target);
+      if (el) el.innerHTML = '<div class="lb-loading">Loading...</div>';
+      fetchPlatformLeaderboard(platform).then(function() {
+        renderLeaderboard(target, lbCache[platform]);
+      });
+    }
+  };
+
+  // ============================================================
+  // DAILY LEADERBOARD (panel)
+  // ============================================================
+  // Daily launch date is now fetched dynamically via window.hofFirstDate
+  var dailyPanelCache = { pc: null, mobile: null };
+  var dailyPanelStats = null;
+
+  // Track which daily platform tab is active per container
+  var activeDailyTab = {
+    panelDailyLeaderboard: 'pc',
+    mobileDailyLeaderboard: 'mobile'
+  };
+
+  function getDailySeedDatePanel() {
+    var now = new Date();
+    return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+  }
+
+  function getDailyDayNumberPanel() {
+    // Use dynamic first date from HoF init
+    var launchStr = window.hofFirstDate;
+    if (!launchStr) return null;
+    var now = new Date();
+    now.setHours(0,0,0,0);
+    var launch = new Date(launchStr + 'T00:00:00');
+    launch.setHours(0,0,0,0);
+    return Math.max(1, Math.floor((now - launch) / 86400000) + 1);
+  }
+
+  function renderDailyLeaderboard(containerId, data) {
+    var el = document.getElementById(containerId);
+    if (!el) return;
+    if (!data || data.length === 0) {
+      el.innerHTML = '<div class="lb-loading">No daily scores yet. Be the first!</div>';
+      return;
+    }
+    var isMobile = containerId.indexOf('mobile') === 0;
+    var entries = isMobile ? data.slice(0, 10) : data;
+
+    function entryHTML(row, i) {
+      var distStr = row.distance != null ? Math.floor(row.distance) + 'm' : '';
+      return '<div class="lb-entry">'
+        + '<span class="lb-rank ' + rankClass(i) + '">' + (i + 1) + '.</span>'
+        + '<span class="lb-name">' + escapeHTML(row.name) + '</span>'
+        + '<span class="lb-date">' + distStr + '</span>'
+        + '<span class="lb-score">' + row.score.toLocaleString() + '</span>'
+        + '</div>';
+    }
+
+    if (isMobile) {
+      el.innerHTML = '<div class="lb-col">' + entries.map(function(row, i) {
+        return entryHTML(row, i);
+      }).join('') + '</div>';
+    } else {
+      var half = Math.ceil(entries.length / 2);
+      var left = entries.slice(0, half);
+      var right = entries.slice(half);
+      el.innerHTML = '<div class="lb-col">' + left.map(function(row, i) {
+        return entryHTML(row, i);
+      }).join('') + '</div>'
+      + '<div class="lb-col">' + right.map(function(row, i) {
+        return entryHTML(row, i + half);
+      }).join('') + '</div>';
+    }
+  }
+
+  function renderDailyHeaders() {
+    var dayNum = getDailyDayNumberPanel();
+    var headers = document.querySelectorAll('.lb-daily-header');
+    headers.forEach(function(el) {
+      el.textContent = dayNum ? 'Daily Challenge #' + dayNum : 'Daily Challenge';
+    });
+  }
+
+  function renderDailyStatsPanel() {
+    var els = [document.getElementById('panelDailyStats'), document.getElementById('mobileDailyStats')];
+    els.forEach(function(el) {
+      if (!el) return;
+      if (!dailyPanelStats || !dailyPanelStats.total_players) {
+        el.textContent = '';
+        return;
+      }
+      var s = dailyPanelStats;
+      el.textContent = s.total_players + ' player' + (s.total_players !== 1 ? 's' : '') + ' today · avg score ' + Math.round(s.avg_score).toLocaleString();
+    });
+  }
+
+  async function fetchDailyPanelLeaderboard() {
+    var dateStr = getDailySeedDatePanel();
+    async function fetchPlatform(platform) {
+      try {
+        var { data, error } = await sb.rpc('get_daily_leaderboard', { p_date: dateStr, p_platform: platform });
+        if (!error && data) {
+          dailyPanelCache[platform] = data;
+        }
+      } catch(e) {
+        console.warn('Daily panel leaderboard fetch failed (' + platform + '):', e);
+      }
+    }
+    await Promise.all([fetchPlatform('pc'), fetchPlatform('mobile')]);
+    // Render whichever tab is active for each container
+    renderDailyLeaderboard('panelDailyLeaderboard', dailyPanelCache[activeDailyTab.panelDailyLeaderboard]);
+    renderDailyLeaderboard('mobileDailyLeaderboard', dailyPanelCache[activeDailyTab.mobileDailyLeaderboard]);
+  }
+
+  async function fetchDailyPanelStats() {
+    var dateStr = getDailySeedDatePanel();
+    try {
+      var { data, error } = await sb.rpc('get_daily_stats', { p_date: dateStr });
+      if (!error && data) {
+        dailyPanelStats = Array.isArray(data) ? data[0] : data;
+      }
+    } catch(e) {
+      console.warn('Daily panel stats fetch failed:', e);
+    }
+    renderDailyStatsPanel();
+  }
+
+  async function fetchAllDailyPanel() {
+    renderDailyHeaders();
+    await Promise.all([fetchDailyPanelLeaderboard(), fetchDailyPanelStats()]);
+  }
+
+  // Mode tab switching (Global / Daily)
+  window.switchLbMode = function(btn) {
+    var mode = btn.getAttribute('data-mode');
+    var containerId = btn.getAttribute('data-container');
+    var container = document.getElementById(containerId);
+    if (!container) return;
+
+    // Update tab styles
+    var tabs = btn.parentElement.querySelectorAll('.lb-mode-tab');
+    tabs.forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+
+    // Toggle views
+    var globalView = container.querySelector('.lb-global-view');
+    var dailyView = container.querySelector('.lb-daily-view');
+    if (mode === 'daily') {
+      if (globalView) globalView.style.display = 'none';
+      if (dailyView) dailyView.style.display = '';
+      // Fetch daily data if not cached
+      if (!dailyPanelCache.pc && !dailyPanelCache.mobile) {
+        fetchAllDailyPanel();
+      }
+    } else {
+      if (globalView) globalView.style.display = '';
+      if (dailyView) dailyView.style.display = 'none';
+    }
+  };
+
+  // Daily platform tab switching (PC / Mobile within daily view)
+  window.switchDailyLbTab = function(btn) {
+    var platform = btn.getAttribute('data-platform');
+    var target = btn.getAttribute('data-target');
+    // Update active tab state
+    activeDailyTab[target] = platform;
+    // Update tab button styles
+    var tabs = btn.parentElement.querySelectorAll('.lb-tab');
+    tabs.forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+    // Render from cache
+    if (dailyPanelCache[platform]) {
+      renderDailyLeaderboard(target, dailyPanelCache[platform]);
+    } else {
+      var el = document.getElementById(target);
+      if (el) el.innerHTML = '<div class="lb-loading">Loading...</div>';
+      fetchDailyPanelLeaderboard().then(function() {
+        renderDailyLeaderboard(target, dailyPanelCache[platform]);
+      });
+    }
+  };
+
+  // Fetch on load
+  fetchAllLeaderboards();
+  fetchAllDailyPanel(); // pre-fetch daily data too
+
+  // Refresh after each game over (game.js dispatches these)
+  window.addEventListener('highScoreUpdated', function() {
+    setTimeout(fetchAllLeaderboards, 1500);
+    setTimeout(fetchAllDailyPanel, 1500);
+  });
+  window.addEventListener('leaderboardUpdated', function() {
+    fetchAllLeaderboards();
+    fetchAllDailyPanel();
+  });
+
+  // Also refresh every 60s
+  setInterval(function() {
+    fetchAllLeaderboards();
+    fetchAllDailyPanel();
+  }, 60000);
+
+  // ============================================================
+  // GLOBAL STATS BATCHED CYCLING (grid pages, roll-up transition)
+  // ============================================================
+  var BATCH_SIZE = 5; // 4 tiles (2x2) + 1 full-width
+  var BATCH_DISPLAY_MS = 10000; // show each batch for 10s
+  var BATCH_TRANSITION_MS = 800; // roll animation duration
+  var statEntries = [];
+  var statBatches = []; // array of arrays, each up to BATCH_SIZE
+  var batchStartTime = 0;
+  var batchAnimFrame = null;
+
+  function buildStatEntries(stats) {
+    if (!stats) return [];
+    var entries = [];
+    var km, distStr;
+    if (stats.totalGames > 0) entries.push({ value: stats.totalGames.toLocaleString(), label: 'Games Played Worldwide' });
+    if (stats.uniquePlayers > 0) entries.push({ value: stats.uniquePlayers.toLocaleString(), label: 'Monkeys Joined the Run' });
+    if (stats.totalDistance > 0) {
+      km = stats.totalDistance / 1000;
+      distStr = km >= 1 ? Math.floor(km).toLocaleString() + 'km' : Math.floor(stats.totalDistance).toLocaleString() + 'm';
+      entries.push({ value: distStr, label: 'Run by All Players Combined' });
+    }
+    if (stats.totalPlushies > 0) entries.push({ value: stats.totalPlushies.toLocaleString(), label: 'Plushies Rescued So Far' });
+    if (stats.topScore > 0) entries.push({ value: stats.topScore.toLocaleString(), label: 'All-Time Highest Score' });
+    if (stats.avgScore > 0) entries.push({ value: Math.round(stats.avgScore).toLocaleString(), label: 'Average Score Per Game' });
+    if (stats.medianScore > 0) entries.push({ value: Math.round(stats.medianScore).toLocaleString(), label: 'Median Score — Can You Beat It?' });
+    if (stats.gamesToday > 0) entries.push({ value: stats.gamesToday.toLocaleString(), label: 'Games Played Today' });
+    if (stats.maxDistance > 0) {
+      km = stats.maxDistance / 1000;
+      distStr = km >= 1 ? km.toFixed(1) + 'km' : Math.floor(stats.maxDistance).toLocaleString() + 'm';
+      entries.push({ value: distStr, label: 'Longest Single Run' });
+    }
+    if (stats.maxPlushies > 0) entries.push({ value: stats.maxPlushies.toLocaleString(), label: 'Most Plushies in One Game' });
+    if (stats.avgDistance > 0) {
+      km = stats.avgDistance / 1000;
+      distStr = km >= 1 ? km.toFixed(1) + 'km' : Math.round(stats.avgDistance).toLocaleString() + 'm';
+      entries.push({ value: distStr, label: 'Average Distance Per Run' });
+    }
+    if (stats.avgPlushies > 0) entries.push({ value: stats.avgPlushies.toFixed(1), label: 'Plushies Rescued Per Game' });
+    if (stats.topScorer) entries.push({ value: escapeHTML(stats.topScorer), label: 'Reigning Champion' });
+    if (stats.newestPlayer) entries.push({ value: escapeHTML(stats.newestPlayer), label: 'Newest Monkey on the Run' });
+    if (stats.pcGames > 0 && stats.mobileGames > 0) {
+      var total = stats.pcGames + stats.mobileGames;
+      var pcPct = Math.round((stats.pcGames / total) * 100);
+      entries.push({ value: pcPct + '% PC / ' + (100 - pcPct) + '% Mobile', label: 'Platform Split' });
+    }
+    return entries;
+  }
+
+  function chunkIntoBatches(entries) {
+    var batches = [];
+    for (var i = 0; i < entries.length; i += BATCH_SIZE) {
+      batches.push(entries.slice(i, i + BATCH_SIZE));
+    }
+    return batches;
+  }
+
+  function renderBatchHTML(batch) {
+    var html = '';
+    for (var i = 0; i < batch.length; i++) {
+      var fw = (i === 4) ? ' full-width' : ''; // 5th item spans full width
+      html += '<div class="stat-item' + fw + '"><span class="stat-value">' + batch[i].value + '</span><span class="stat-label">' + batch[i].label + '</span></div>';
+    }
+    return html;
+  }
+
+  function animateBatches() {
+    if (statBatches.length <= 1) return; // no cycling needed for 0 or 1 batch
+    var containers = [document.getElementById('panelGlobalStats'), document.getElementById('mobileGlobalStats')];
+
+    var now = Date.now();
+    if (batchStartTime === 0) batchStartTime = now;
+    var elapsed = now - batchStartTime;
+    var totalCycle = BATCH_DISPLAY_MS + BATCH_TRANSITION_MS;
+    var cyclePos = elapsed % totalCycle;
+    var isTransitioning = cyclePos > BATCH_DISPLAY_MS;
+    var t = isTransitioning ? (cyclePos - BATCH_DISPLAY_MS) / BATCH_TRANSITION_MS : 0;
+    var currentIdx = Math.floor(elapsed / totalCycle) % statBatches.length;
+    var nextIdx = (currentIdx + 1) % statBatches.length;
+    var ease = isTransitioning ? 1 - Math.pow(1 - t, 3) : 0;
+
+    containers.forEach(function(el) {
+      if (!el) return;
+      // Ensure two batch children exist
+      var a = el.querySelector('.stats-batch-a');
+      var b = el.querySelector('.stats-batch-b');
+      if (!a) {
+        el.innerHTML = '<div class="stats-batch stats-batch-a"></div><div class="stats-batch stats-batch-abs stats-batch-b"></div>';
+        a = el.querySelector('.stats-batch-a');
+        b = el.querySelector('.stats-batch-b');
+      }
+
+      if (isTransitioning) {
+        a.innerHTML = renderBatchHTML(statBatches[currentIdx]);
+        b.innerHTML = renderBatchHTML(statBatches[nextIdx]);
+        // Lock container height during transition
+        var h = a.offsetHeight || 120;
+        el.style.height = h + 'px';
+        var outY = -ease * h;
+        var inY = h - ease * h;
+        a.style.transform = 'translateY(' + outY + 'px)';
+        a.style.opacity = 1 - ease;
+        b.style.transform = 'translateY(' + inY + 'px)';
+        b.style.opacity = ease;
+      } else {
+        a.innerHTML = renderBatchHTML(statBatches[currentIdx]);
+        a.style.transform = 'translateY(0)';
+        a.style.opacity = 1;
+        b.style.opacity = 0;
+        el.style.height = ''; // release height lock
+      }
+    });
+
+    batchAnimFrame = requestAnimationFrame(animateBatches);
+  }
+
+  window.renderGlobalStats = function(stats) {
+    statEntries = buildStatEntries(stats);
+    statBatches = chunkIntoBatches(statEntries);
+    var containers = [document.getElementById('panelGlobalStats'), document.getElementById('mobileGlobalStats')];
+
+    if (statBatches.length === 0) return;
+
+    // Render first batch immediately
+    var firstHTML = renderBatchHTML(statBatches[0]);
+    containers.forEach(function(el) {
+      if (!el) return;
+      if (statBatches.length === 1) {
+        // Only one batch, no cycling needed — just render static grid
+        el.innerHTML = '<div class="stats-batch">' + firstHTML + '</div>';
+      } else {
+        el.innerHTML = '<div class="stats-batch stats-batch-a">' + firstHTML + '</div><div class="stats-batch stats-batch-abs stats-batch-b" style="opacity:0"></div>';
+      }
+    });
+
+    // Start cycling if multiple batches
+    if (statBatches.length > 1 && !batchAnimFrame) {
+      batchStartTime = Date.now();
+      animateBatches();
+    }
+  };
+
+  // ============================================================
+  // HALL OF FAME (daily leaderboard history, paginated by date)
+  // ============================================================
+  var hofFirstDate = null; // dynamically fetched from DB
+  var hofCurrentDate = null; // YYYY-MM-DD string
+  var hofCache = {}; // { 'YYYY-MM-DD': { pc: [...], mobile: [...], stats: {...} } }
+  var hofActiveTab = {
+    hofLeaderboard: 'pc',
+    hofLeaderboardMobile: 'pc'
+  };
+
+  function hofGetYesterday() {
+    var d = new Date();
+    d.setDate(d.getDate() - 1);
+    return hofFormatDate(d);
+  }
+
+  function hofGetToday() {
+    return hofFormatDate(new Date());
+  }
+
+  function hofFormatDate(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  function hofParseDate(str) {
+    var parts = str.split('-');
+    return new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+  }
+
+  function hofDayNumber(dateStr) {
+    if (!hofFirstDate) return '?';
+    var d = hofParseDate(dateStr);
+    d.setHours(0,0,0,0);
+    var launch = hofParseDate(hofFirstDate);
+    launch.setHours(0,0,0,0);
+    return Math.max(1, Math.floor((d - launch) / 86400000) + 1);
+  }
+
+  function hofFormatLabel(dateStr) {
+    var d = hofParseDate(dateStr);
+    var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    var dayNum = hofDayNumber(dateStr);
+    return 'Daily #' + dayNum + '  —  ' + months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+  }
+
+  function hofCanGoNext() {
+    if (!hofCurrentDate) return false;
+    var yesterday = hofGetYesterday();
+    return hofCurrentDate < yesterday;
+  }
+
+  function hofCanGoPrev() {
+    if (!hofCurrentDate || !hofFirstDate) return false;
+    return hofCurrentDate > hofFirstDate;
+  }
+
+  function hofUpdateNav() {
+    var label = hofFormatLabel(hofCurrentDate);
+    var labelEl = document.getElementById('hofDateLabel');
+    var labelElM = document.getElementById('hofDateLabelMobile');
+    if (labelEl) labelEl.textContent = label;
+    if (labelElM) labelElM.textContent = label;
+
+    var prevEl = document.getElementById('hofPrev');
+    var prevElM = document.getElementById('hofPrevMobile');
+    var nextEl = document.getElementById('hofNext');
+    var nextElM = document.getElementById('hofNextMobile');
+    if (prevEl) prevEl.disabled = !hofCanGoPrev();
+    if (prevElM) prevElM.disabled = !hofCanGoPrev();
+    if (nextEl) nextEl.disabled = !hofCanGoNext();
+    if (nextElM) nextElM.disabled = !hofCanGoNext();
+  }
+
+  function hofRenderLeaderboard(containerId, data) {
+    var el = document.getElementById(containerId);
+    if (!el) return;
+    if (!data || data.length === 0) {
+      el.innerHTML = '<div class="lb-loading">No scores recorded for this day.</div>';
+      return;
+    }
+    var isMobile = containerId.indexOf('Mobile') !== -1;
+    var entries = isMobile ? data.slice(0, 10) : data;
+
+    function entryHTML(row, i) {
+      var distStr = row.distance != null ? Math.floor(row.distance) + 'm' : '';
+      return '<div class="lb-entry">'
+        + '<span class="lb-rank ' + rankClass(i) + '">' + (i + 1) + '.</span>'
+        + '<span class="lb-name">' + escapeHTML(row.name) + '</span>'
+        + '<span class="lb-date">' + distStr + '</span>'
+        + '<span class="lb-score">' + row.score.toLocaleString() + '</span>'
+        + '</div>';
+    }
+
+    if (isMobile) {
+      el.innerHTML = '<div class="lb-col">' + entries.map(function(row, i) {
+        return entryHTML(row, i);
+      }).join('') + '</div>';
+    } else {
+      var half = Math.ceil(entries.length / 2);
+      var left = entries.slice(0, half);
+      var right = entries.slice(half);
+      el.innerHTML = '<div class="lb-col">' + left.map(function(row, i) {
+        return entryHTML(row, i);
+      }).join('') + '</div>'
+      + '<div class="lb-col">' + right.map(function(row, i) {
+        return entryHTML(row, i + half);
+      }).join('') + '</div>';
+    }
+  }
+
+  function hofRenderStats(dateStr) {
+    var cached = hofCache[dateStr];
+    var statsEls = [document.getElementById('hofStats'), document.getElementById('hofStatsMobile')];
+    statsEls.forEach(function(el) {
+      if (!el) return;
+      if (!cached || !cached.stats || !cached.stats.total_players) {
+        el.textContent = '';
+        return;
+      }
+      var s = cached.stats;
+      el.textContent = s.total_players + ' player' + (s.total_players !== 1 ? 's' : '') + ' · avg score ' + Math.round(s.avg_score).toLocaleString();
+    });
+  }
+
+  async function hofFetchDate(dateStr) {
+    if (hofCache[dateStr]) return; // already cached
+
+    hofCache[dateStr] = { pc: null, mobile: null, stats: null };
+
+    async function fetchPlatform(platform) {
+      try {
+        var { data, error } = await sb.rpc('get_daily_leaderboard', { p_date: dateStr, p_platform: platform });
+        if (!error && data) {
+          hofCache[dateStr][platform] = data;
+        }
+      } catch(e) {
+        console.warn('HoF fetch failed (' + platform + ', ' + dateStr + '):', e);
+      }
+    }
+
+    async function fetchStats() {
+      try {
+        var { data, error } = await sb.rpc('get_daily_stats', { p_date: dateStr });
+        if (!error && data) {
+          hofCache[dateStr].stats = Array.isArray(data) ? data[0] : data;
+        }
+      } catch(e) {
+        console.warn('HoF stats fetch failed (' + dateStr + '):', e);
+      }
+    }
+
+    await Promise.all([fetchPlatform('pc'), fetchPlatform('mobile'), fetchStats()]);
+  }
+
+  async function hofLoadCurrentDate() {
+    // Show loading
+    var containers = ['hofLeaderboard', 'hofLeaderboardMobile'];
+    containers.forEach(function(id) {
+      var el = document.getElementById(id);
+      if (el) el.innerHTML = '<div class="lb-loading">Loading...</div>';
+    });
+
+    hofUpdateNav();
+    await hofFetchDate(hofCurrentDate);
+
+    // Render active tab for each container
+    var pcData = hofCache[hofCurrentDate] ? hofCache[hofCurrentDate].pc : null;
+    var mobileData = hofCache[hofCurrentDate] ? hofCache[hofCurrentDate].mobile : null;
+
+    hofRenderLeaderboard('hofLeaderboard', hofActiveTab.hofLeaderboard === 'pc' ? pcData : mobileData);
+    hofRenderLeaderboard('hofLeaderboardMobile', hofActiveTab.hofLeaderboardMobile === 'pc' ? pcData : mobileData);
+    hofRenderStats(hofCurrentDate);
+  }
+
+  window.hofPrevDay = function() {
+    if (!hofCanGoPrev()) return;
+    var d = hofParseDate(hofCurrentDate);
+    d.setDate(d.getDate() - 1);
+    hofCurrentDate = hofFormatDate(d);
+    hofLoadCurrentDate();
+  };
+
+  window.hofNextDay = function() {
+    if (!hofCanGoNext()) return;
+    var d = hofParseDate(hofCurrentDate);
+    d.setDate(d.getDate() + 1);
+    hofCurrentDate = hofFormatDate(d);
+    hofLoadCurrentDate();
+  };
+
+  window.switchHofTab = function(btn) {
+    var platform = btn.getAttribute('data-platform');
+    var target = btn.getAttribute('data-target');
+    hofActiveTab[target] = platform;
+    // Update tab styles
+    var tabs = btn.parentElement.querySelectorAll('.lb-tab');
+    tabs.forEach(function(t) { t.classList.remove('active'); });
+    btn.classList.add('active');
+    // Render from cache
+    var cached = hofCache[hofCurrentDate];
+    var data = cached ? cached[platform] : null;
+    hofRenderLeaderboard(target, data);
+  };
+
+  // Initialize Hall of Fame — fetch earliest daily date from DB
+  async function hofInit() {
+    try {
+      var { data, error } = await sb
+        .from('daily_leaderboard')
+        .select('seed_date')
+        .order('seed_date', { ascending: true })
+        .limit(1);
+      if (!error && data && data.length > 0) {
+        hofFirstDate = data[0].seed_date;
+        window.hofFirstDate = hofFirstDate;
+      }
+    } catch(e) {
+      console.warn('HoF: failed to fetch first daily date:', e);
+    }
+
+    if (!hofFirstDate) {
+      // Fallback: can't determine range, show today
+      hofFirstDate = hofGetToday();
+      window.hofFirstDate = hofFirstDate;
+    }
+
+    // Start from yesterday, clamped to valid range
+    var yesterday = hofGetYesterday();
+    if (yesterday >= hofFirstDate) {
+      hofCurrentDate = yesterday;
+    } else {
+      hofCurrentDate = hofFirstDate;
+    }
+
+    hofLoadCurrentDate();
+
+    // Re-render daily headers now that we have the real first date
+    renderDailyHeaders();
+  }
+
+  hofInit();
+
+})();
+</script>
+<script src="game.js?v=1772019433"></script>
+</body>
+</html>

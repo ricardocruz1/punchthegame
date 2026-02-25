@@ -1,0 +1,25 @@
+{
+  "name": "Punch, the Monkey",
+  "short_name": "Punch Runner",
+  "description": "Help baby Punch the monkey escape angry adults in this free endless runner browser game. Inspired by the viral Japanese macaque from Ichikawa City Zoo.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111827",
+  "theme_color": "#fbbf24",
+  "orientation": "portrait",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
